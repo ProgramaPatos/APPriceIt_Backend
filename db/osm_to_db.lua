@@ -1,4 +1,4 @@
--- -*- compile-command: "osm2pgsql -d <db_name> -O flex -S osm_to_db.lua shpdir/<file.osm.pbf>" -*-
+-- -*- compile-command: "osm2pgsql -d <db_name> -O flex -S osm_to_db.lua shpdir/<file.osm.*>" -*-
 -- This is a Lua script based on https://osm2pgsql.org/examples/poi-db/
 -- to transform the OSM shapefile into a pgsql/postGIS valid format and upload it
 -- to the database
