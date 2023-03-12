@@ -36,7 +36,7 @@ entity User {
     * user_state: bool
 }
 
-User ||--o{ Store
+User ||--o{ Store: Creates
 
 entity Role {
     * role_id: autoincrement int
