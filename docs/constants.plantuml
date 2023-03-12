@@ -1,0 +1,6 @@
+@startuml constants
+!global $SYSTEM_NAME = "FormularioPracticas"
+!theme mars
+skinparam titleBorderRoundCorner 15
+skinparam titleBorderThickness 2
+@enduml
