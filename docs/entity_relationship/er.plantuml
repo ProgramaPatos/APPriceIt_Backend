@@ -9,23 +9,6 @@ allow_mixing
 
 title Entidad Relación APPriceIt
 
-entity User {
-    * user_id: autoincrement int
-    --
-    * user_name: varchar(70)
-    * user_password: varchar(70)
-    * user_creation_date: date
-    * user_state: bool
-}
-
-entity Role {
-    * role_id: autoincrement int
-    --
-    * role_name: varchar(70)
-}
-
-User }o--|{ Role : has
-
 Entity Store {
     * store_id: autoincrement int
     --
@@ -40,7 +23,29 @@ Entity Store {
     /' This should only store in the hours range
      Ensure this as a bussiness rule'/
     * store_schedule: daterange
+    * store_create: date
 }
+
+
+entity User {
+    * user_id: autoincrement int
+    --
+    * user_name: varchar(70)
+    * user_password: varchar(70)
+    * user_creation_date: date
+    * user_state: bool
+}
+
+User ||--o{ Store
+
+entity Role {
+    * role_id: autoincrement int
+    --
+    * role_name: varchar(70)
+}
+
+User }o--|{ Role : has
+
 
 Entity Product {
     * product_id: autoincrement int
