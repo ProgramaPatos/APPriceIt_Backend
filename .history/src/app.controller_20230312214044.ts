@@ -7,6 +7,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return 'Holiiiii amores mis patos preciosos';
+    return 'Holiiiii amores mis patos preciososs';
   }
 }
