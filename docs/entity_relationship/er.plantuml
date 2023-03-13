@@ -13,30 +13,30 @@ Entity Store {
     * store_id: autoincrement int
     --
     /'The length of the varchar should be selected based on
-    name length data queried from OSM (72 for ), or maybe just use text like
+    name length data queried from OSM (172 for Colombia), or maybe just use text like
     the imported database does by default? '/
     * store_name: varchar(?)
     /' 2D point with the Spatial Reference Identifier
        (SRID) of Open Street Map data'/
     * store_location_geom: geom(POINTXY(srid=4326))
-    * store_description: text
+    store_description: text
     /' This should only store in the hours range
      Ensure this as a bussiness rule'/
-    * store_schedule: daterange
-    * store_create: date
+    store_schedule: tstzrange
+    * store_creation_timestamp: timestamp
 }
 
 
-entity User {
+entity AppUser {
     * user_id: autoincrement int
     --
     * user_name: varchar(70)
     * user_password: varchar(70)
-    * user_creation_date: date
+    * user_creation_timestamp: timestamp
     * user_state: bool
 }
 
-User ||--o{ Store: Creates
+AppUser |o--o{ Store: Creates
 
 entity Role {
     * role_id: autoincrement int
@@ -44,14 +44,14 @@ entity Role {
     * role_name: varchar(70)
 }
 
-User }o--|{ Role : has
+AppUser }o--|{ Role : has
 
 
 Entity Product {
     * product_id: autoincrement int
     --
     * product_name: varchar(70)
-    * product_description: Text
+    product_description: Text
 }
 
 
@@ -59,11 +59,12 @@ Entity Tag {
     * tag_id: autoincrement int
     --
     * tag_name: varchar(70)
-    * tag_description: Text
+    tag_description: Text
 }
 
 
-Product }o--|{ Tag : is Categorized within
+Product }o--o{ Tag : is Categorized within
+Store }o--o{ Tag : is Categorized within
 
 Entity Price {
     * price_id: autoincrement int
@@ -72,10 +73,10 @@ Entity Price {
     deal reasonably with multiple currencies and
     possibly many digits after the decimal point'/
     * price_value: numeric(?,?)
-    * price_date: date
+    * price_timestamp: timestamp
 }
 
-User ||--o{ Price : publishes
+AppUser |o--o{ Price : publishes
 
 
 /' This entity represents the reviews and comments other users
@@ -88,17 +89,16 @@ Entity PriceReview {
     /' TODO: This score value should be within a valid range
     to be defined'/
     * pricereview_score: int
-    * pricereview_date: int
-    * pricereview_creation_date: date
-    * pricereview_modification_date: date
-    price_review: text
+    * pricereview_creation_timestamp: timestamp
+    * pricereview_modification_timestamp: timestamp
+    pricereview_comment: text
 }
 
 Price ||--o{ PriceReview : is reviewed by
 /'
- ' An user shouldn't be able to review its own price
+ ' An appuser shouldn't be able to review its own price
  '/
-User ||--o{ PriceReview : reviews with
+AppUser ||--o{ PriceReview : reviews with
 
 
 Entity ProductAtStore {
