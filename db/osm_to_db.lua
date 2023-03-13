@@ -5,7 +5,7 @@
 
 -- local osm2pgsql = require("osm2pgsql")
 -- print(osm2pgsql)
-local inspect = require("inspect")
+-- local inspect = require("inspect")
 print("Holaaa")
 
 local poi_st_name = "store_staging"

@@ -1,4 +1,12 @@
-DROP PROCEDURE create_store;
+DROP PROCEDURE IF EXISTS create_store;
+DROP PROCEDURE IF EXISTS create_product;
+DROP PROCEDURE IF EXISTS create_user;
+DROP PROCEDURE IF EXISTS create_role;
+DROP PROCEDURE IF EXISTS create_price;
+DROP PROCEDURE IF EXISTS assign_role;
+DROP PROCEDURE IF EXISTS assign_product_tag;
+DROP PROCEDURE IF EXISTS create_price_review;
+DROP PROCEDURE IF EXISTS assign_product_to_store;
 DROP TABLE IF EXISTS producttag;
 DROP TABLE IF EXISTS productatstore;
 DROP TABLE IF EXISTS storetag;
