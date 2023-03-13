@@ -8,7 +8,7 @@
 local inspect = require("inspect")
 print("Holaaa")
 
-local poi_st_name = "poi_staging"
+local poi_st_name = "store_staging"
 local poi_st_name_pre = poi_st_name .. "_"
 local poi_db_table = osm2pgsql.define_table({
   name = poi_st_name,

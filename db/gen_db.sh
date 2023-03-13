@@ -7,4 +7,8 @@ DOWNLOAD_DIR=./osm
 # Time and date to append to file name
 TIME=$(date -Iseconds)
 
-wget -q https://download.bbbike.org/osm/bbbike/Bogota/Bogota.osm.pbf -O "$DOWNLOAD_DIR/bogota-$TIME.osm.pbf"
+FILE_PATH="$DOWNLOAD_DIR/bogota-$TIME.osm.pbf"
+
+wget -q https://download.bbbike.org/osm/bbbike/Bogota/Bogota.osm.pbf -O "$FILE_PATH"
+osm2pgsql -d "$DATABASE_NAME" -O flex -S osm_to_db.lua "$FILE_PATH"
+psql -d "$DATABASE_NAME" -a -f "./create.sql"
