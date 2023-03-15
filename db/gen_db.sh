@@ -7,8 +7,9 @@ DOWNLOAD_DIR=./osm
 # Time and date to append to file name
 TIME=$(date +%y-%m-%d-%H-%M)
 
-FILE_PATH="./osm/bogota.osm.pbf"
+FILE_PATH="./osm/bogota-$TIME.osm.pbf"
 
-wget -q https://download.bbbike.org/osm/bbbike/Bogota/Bogota.osm.pbf -O "./osm/bogota-$TIME.osm.pbf"
-osm2pgsql -c -d "$DATABASE_NAME" -U "$DATABASE_USERNAME" -W -H localhost -O flex -S osm_to_db.lua "$FILE_PATH"
+wget -q https://download.bbbike.org/osm/bbbike/Bogota/Bogota.osm.pbf -O "$FILE_PATH"
 PGPASSWORD="$DATABASE_PASS" psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -a -f "./create.sql"
+osm2pgsql -c -d "$DATABASE_NAME" -U "$DATABASE_USERNAME" -W -H localhost -O flex -S osm_to_db.lua "$FILE_PATH"
+PGPASSWORD="$DATABASE_PASS" psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -a -f "./populate_store_data.sql"
