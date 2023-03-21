@@ -5,10 +5,11 @@ DOWNLOAD_DIR=./osm
 [ ! -d $DOWNLOAD_DIR ] && mkdir $DOWNLOAD_DIR
 
 # Time and date to append to file name
-TIME=$(date -Iseconds)
+TIME=$(date +%y-%m-%d-%H-%M)
 
-FILE_PATH="$DOWNLOAD_DIR/bogota-$TIME.osm.pbf"
+FILE_PATH="./osm/bogota-$TIME.osm.pbf"
 
 wget -q https://download.bbbike.org/osm/bbbike/Bogota/Bogota.osm.pbf -O "$FILE_PATH"
-osm2pgsql -d "$DATABASE_NAME" -O flex -S osm_to_db.lua "$FILE_PATH"
-psql -d "$DATABASE_NAME" -a -f "./create.sql"
+PGPASSWORD="$DATABASE_PASS" psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -a -f "./create.sql"
+osm2pgsql -c -d "$DATABASE_NAME" -U "$DATABASE_USERNAME" -W -H localhost -O flex -S osm_to_db.lua "$FILE_PATH"
+PGPASSWORD="$DATABASE_PASS" psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -a -f "./populate_store_data.sql"

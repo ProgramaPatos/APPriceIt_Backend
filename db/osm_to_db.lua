@@ -5,13 +5,16 @@
 
 -- local osm2pgsql = require("osm2pgsql")
 -- print(osm2pgsql)
-local inspect = require("inspect")
+-- local inspect = require("inspect")
 print("Holaaa")
+
+local staging_schema = "staging"
 
 local poi_st_name = "store_staging"
 local poi_st_name_pre = poi_st_name .. "_"
 local poi_db_table = osm2pgsql.define_table({
   name = poi_st_name,
+  schema = staging_schema,
   ids = { type = 'any', type_column = 'osm_type', id_column = 'osm_id' },
   columns = {
     { column = poi_st_name_pre .. 'name' },
@@ -35,6 +38,7 @@ local tag_st_name = "tag_staging"
 local tag_st_name_pre = tag_st_name .. "_"
 local tag_db_table = osm2pgsql.define_table({
   name = tag_st_name,
+  schema = staging_schema,
   columns = {
     { column = tag_st_name_pre .. 'name', type = "text",   not_null = false }, -- There are pois without name
     { column = tag_st_name_pre .. 'id',   type = 'bigint', not_null = true }
@@ -53,6 +57,7 @@ local storetag_st_name = "storetag_staging"
 local storetag_st_name_pre = storetag_st_name .. "_"
 local storetag_db_table = osm2pgsql.define_table({
   name = storetag_st_name,
+  schema = staging_schema,
   columns = {
     { column = storetag_st_name_pre .. 'store_id', type = 'bigint', not_null = true },
     { column = storetag_st_name_pre .. 'tag_id',   type = 'bigint', not_null = true }
