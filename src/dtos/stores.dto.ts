@@ -6,16 +6,21 @@
 // store_creation_time timestamp NOT NULL,
 // store_appuser_id int NULL REFERENCES appuser (appuser_id)
 
-import { IsNotEmpty, IsString, IsNumber, IsDate } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsDate, isNumber } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateStoreDTO {
-  store_id: number;
   @IsString()
   @IsNotEmpty()
   readonly store_name: string;
+
+  @IsNumber()
   @IsNotEmpty()
-  readonly store_location: string;
+  readonly store_lon: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  readonly store_lat: number;
   //TODO create a custom validator for this
   @IsString()
   @IsNotEmpty()

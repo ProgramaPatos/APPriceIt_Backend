@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Store } from '../../interfaces/stores/stores.interface';
 import { CreateStoreDTO, UpdateStoreDTO } from '../../dtos/stores.dto';
+import { IDatabase } from 'pg-promise';
+import pg, { IClient } from 'pg-promise/typescript/pg-subset';
 
 @Injectable()
 export class StoresService {
+  constructor(
+    @Inject("POSTGRES_PROVIDER")
+    private pgdb: IDatabase<{}, IClient>
+  ) { }
   private counter = 1;
   private stores: Store[] = [
     {
@@ -27,11 +33,18 @@ export class StoresService {
     return this.stores.find((store) => store.store_id === id);
   }
 
-  createStore(newStore: CreateStoreDTO) {
-    this.counter++;
-    newStore.store_id = this.counter;
-    this.stores.push(newStore);
-    return this.stores[this.stores.length - 1];
+  async createStore(newStore: CreateStoreDTO) {
+    return await this.pgdb.proc(
+      "app.create_store",
+       [
+        newStore.store_name,
+        newStore.store_lon,
+        newStore.store_lat,
+        newStore.store_appuser_id,
+        newStore.store_description,
+        newStore.store_schedule
+      ]
+    )
   }
 
   updateStore(id: number, updatedStore: UpdateStoreDTO) {
