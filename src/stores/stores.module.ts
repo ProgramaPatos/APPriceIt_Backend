@@ -17,9 +17,9 @@ import { AppController } from 'src/app.controller';
 export class StoresModule implements NestModule {
     configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
       consumer.apply(AuthenticationMiddleware).forRoutes(
-        { method: RequestMethod.POST, path: '/store/post' },
-        { method: RequestMethod.PUT, path: '/store/edit' },
-        { method: RequestMethod.DELETE, path: '/store/delete' }
+        { method: RequestMethod.POST, path: '/stores' },
+        { method: RequestMethod.PUT, path: '/stores/:store_id' },
+        { method: RequestMethod.DELETE, path: '/stores/:store_id' }
       )
     }
 }

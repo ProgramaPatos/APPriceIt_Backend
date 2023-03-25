@@ -5,11 +5,11 @@ import { expressJwtSecret, GetVerificationKey } from 'jwks-rsa';
 import { Request, Response } from 'express';
 import * as dotenv from 'dotenv';
 dotenv.config();
-    
+
 @Injectable()
 export class AuthenticationMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
-    jwt({
+    expressjwt({
         secret: expressJwtSecret ({
           cache: true,
           rateLimit: true,
