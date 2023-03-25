@@ -5,10 +5,11 @@ import { ConfigModule } from '@nestjs/config';
 import { StoresController } from './controllers/stores/stores.controller';
 import { StoresService } from './services/stores/stores.service';
 import { PostgresProvider } from './database/postgres.providers';
+import { StoresModule } from './stores/stores.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true})],
+  imports: [ConfigModule.forRoot({isGlobal: true}), StoresModule],
   controllers: [AppController, StoresController],
   providers: [AppService, StoresService, PostgresProvider],
 })
