@@ -38,8 +38,8 @@ export class StoresService {
       "fun.create_store",
       [
         newStore.store_name,
-        newStore.store_lon,
         newStore.store_lat,
+        newStore.store_lon,
         newStore.store_appuser_id,
         newStore.store_description,
         newStore.store_schedule

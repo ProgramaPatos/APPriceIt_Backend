@@ -124,8 +124,8 @@ END;
 
 CREATE PROCEDURE fun.create_store(
        n varchar(172),
-       lon double precision,
        lat double precision,
+       lon double precision,
        user_id int = NULL,
        description text = NULL,
        schedule tstzrange = NULL
@@ -134,7 +134,7 @@ LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
       INSERT INTO :env.store (store_name,store_location,store_appuser_id,store_description,store_schedule,store_creation_time)
-      VALUES (n,ST_Point(lon,lat,4326),user_id,description,schedule,NOW());
+      VALUES (n,ST_Point(lat,lon,4326),user_id,description,schedule,NOW());
 END;
 
 

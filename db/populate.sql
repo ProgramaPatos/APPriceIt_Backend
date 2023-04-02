@@ -1,5 +1,5 @@
-ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL;
-ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL;
+ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
+ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;
 
 INSERT INTO :env.store (store_temp_id, store_name, store_location, store_creation_time)
        SELECT store_staging_id, COALESCE(store_staging_name,'store name missing'), ST_TRANSFORM(store_staging_geom, 4326), NOW()
