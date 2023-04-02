@@ -103,9 +103,12 @@ dist
 # TernJS port file
 .tern-port
 
-db/osm/
+db/*.osm*
 db/.luarc.json
 
 
 # Ignore env vars 
 .env
+
+# ignore postgres data
+postgres-data/

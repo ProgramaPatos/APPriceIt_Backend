@@ -9,11 +9,11 @@ export class StoresService {
   constructor(
     @Inject("POSTGRES_PROVIDER")
     private pgdb: IDatabase<{}, IClient>
-  ) { }
+  ) {}
   private counter = 1;
   private stores: Store[] = [
     {
-      store_id: 1,
+      store_id: 42,
       store_name: 'string',
       store_location: 'string',
       store_description: 'string',
@@ -35,8 +35,8 @@ export class StoresService {
 
   async createStore(newStore: CreateStoreDTO) {
     return await this.pgdb.proc(
-      "app.create_store",
-       [
+      "fun.create_store",
+      [
         newStore.store_name,
         newStore.store_lon,
         newStore.store_lat,

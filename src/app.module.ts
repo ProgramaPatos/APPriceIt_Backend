@@ -8,7 +8,7 @@ import { PostgresProvider } from './database/postgres.providers';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true})],
+  imports: [ConfigModule.forRoot({ isGlobal: true, expandVariables: true })],
   controllers: [AppController, StoresController],
   providers: [AppService, StoresService, PostgresProvider],
 })
