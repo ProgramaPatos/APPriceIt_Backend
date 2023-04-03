@@ -54,7 +54,7 @@ CREATE TABLE :env.store (
        store_description TEXT NULL,
        store_schedule tstzrange NULL,
        store_creation_time timestamp NOT NULL,
-       store_appuser_id int NULL REFERENCES :env.appuser (appuser_id)
+       store_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
 CREATE TABLE :env.tag (
@@ -122,6 +122,7 @@ BEGIN ATOMIC
     VALUES (n, description);
 END;
 
+-- STORE RELATED PROCEDURES AND FUNCTIONS
 CREATE PROCEDURE fun.create_store(
        n varchar(172),
        lat double precision,
@@ -134,10 +135,116 @@ LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
       INSERT INTO :env.store (store_name,store_location,store_appuser_id,store_description,store_schedule,store_creation_time)
-      VALUES (n,ST_Point(lat,lon,4326),user_id,description,schedule,NOW());
+      VALUES (n,ST_Point(lon,lat,4326),user_id,description,schedule,NOW());
+END;
+
+CREATE FUNCTION fun.get_store(
+       id int
+       )
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    store_id,
+    store_name,
+    ST_AsGeoJSON(store_location)::jsonb,
+    store_description,
+    store_schedule,
+    store_creation_time,
+    store_appuser_id
+    FROM dev.store WHERE store_id = id;
 END;
 
 
+CREATE FUNCTION fun.get_stores_within(
+       lat double precision,
+       lon double precision,
+       dist double precision
+       )
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    store_id,
+    store_name,
+    ST_AsGeoJSON(store_location)::jsonb,
+    store_description,
+    store_schedule,
+    store_creation_time,
+    store_appuser_id
+    FROM dev.store WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist;
+END;
+
+-- CREATE FUNCTION fun.update_store(
+--        id int,
+--        n varchar(172),
+--        lat double precision,
+--        lon double precision,
+--        user_id int,
+--        description text,
+--        schedule tstzrange
+--        )
+-- RETURNS int AS $$
+-- DECLARE
+--     r_cnt integer;
+-- BEGIN
+--       UPDATE dev.store
+--       SET store_description = description,
+--           store_name = n,
+--           store_location = ST_POINT(lat,lon,4326),
+--           store_schedule = schedule
+--       WHERE store_id = id
+--       AND store_appuser_id = user_id;
+--       GET DIAGNOSTICS r_cnt = row_count;
+--       RETURN r_cnt;
+-- END;
+-- $$
+-- LANGUAGE plpgsql
+-- SECURITY DEFINER;
+
+
+CREATE FUNCTION fun.update_store(
+       id int,
+       n varchar(172),
+       lat double precision,
+       lon double precision,
+       user_id int,
+       description text,
+       schedule tstzrange
+       )
+RETURNS TABLE (
+        updated_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      UPDATE dev.store
+      SET store_description = description,
+          store_name = n,
+          store_location = ST_POINT(lat,lon,4326),
+          store_schedule = schedule
+      WHERE store_id = id
+      AND store_appuser_id = user_id
+      RETURNING store_id;
+END;
 
 CREATE PROCEDURE fun.create_user(
     n varchar(70),

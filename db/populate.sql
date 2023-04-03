@@ -1,8 +1,29 @@
+INSERT INTO :env.appuser (
+       appuser_name,
+       appuser_password,
+       appuser_state,
+       appuser_creation_date
+)
+VALUES ('Admin','secret',TRUE, NOW());
+
+
+
 ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
 ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;
 
-INSERT INTO :env.store (store_temp_id, store_name, store_location, store_creation_time)
-       SELECT store_staging_id, COALESCE(store_staging_name,'store name missing'), ST_TRANSFORM(store_staging_geom, 4326), NOW()
+INSERT INTO :env.store (
+       store_temp_id,
+       store_name,
+       store_location,
+       store_creation_time,
+       store_appuser_id
+       )
+       SELECT
+       store_staging_id,
+       COALESCE(store_staging_name,'store name missing'),
+       ST_TRANSFORM(store_staging_geom, 4326),
+       NOW(),
+       (SELECT appuser_id FROM dev.appuser)
        FROM staging.store_staging;
 
 INSERT INTO :env.tag (tag_temp_id, tag_name)

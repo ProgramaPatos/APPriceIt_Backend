@@ -13,25 +13,34 @@ export class CreateStoreDTO {
   @IsString()
   @IsNotEmpty()
   readonly store_name: string;
-
   @IsNumber()
   @IsNotEmpty()
   readonly store_lon: number;
-
   @IsNumber()
   @IsNotEmpty()
   readonly store_lat: number;
   //TODO create a custom validator for this
   @IsString()
-  @IsNotEmpty()
   readonly store_description: string;
   @IsString()
-  @IsNotEmpty()
   readonly store_schedule: string;
-  @IsDate()
-  readonly store_creation_time: string;
   @IsNumber()
+  @IsNotEmpty()
   readonly store_appuser_id: number;
 }
 
 export class UpdateStoreDTO extends PartialType(CreateStoreDTO) {}
+
+export class StoreWithinDTO {
+  @IsNumber()
+  @IsNotEmpty()
+  readonly lat: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  readonly lon: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  readonly distance: number;
+}

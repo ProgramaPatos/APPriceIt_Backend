@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Store } from '../../interfaces/stores/stores.interface';
-import { CreateStoreDTO, UpdateStoreDTO } from '../../dtos/stores.dto';
+import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO } from '../../dtos/stores.dto';
 import { IDatabase } from 'pg-promise';
 import pg, { IClient } from 'pg-promise/typescript/pg-subset';
 
@@ -10,27 +10,20 @@ export class StoresService {
     @Inject("POSTGRES_PROVIDER")
     private pgdb: IDatabase<{}, IClient>
   ) {}
-  private counter = 1;
-  private stores: Store[] = [
-    {
-      store_id: 42,
-      store_name: 'string',
-      store_location: 'string',
-      store_description: 'string',
-      store_schedule: 'string;',
-      store_creation_time: 'string;',
-      store_appuser_id: 1,
-    },
-  ];
+  private stores = []
 
-  findAllStores() {
-    return this.stores;
-  }
-
-  findOneStore(id: number) {
-    if (!this.stores.find((store) => store.store_id === id))
+  async findOneStore(id: number) {
+    const res = await this.pgdb.func(
+      "fun.get_store",
+      [id]
+    ) as Store[];
+    if (res.length == 0) {
       throw new NotFoundException(`Store ${id} not found`);
-    return this.stores.find((store) => store.store_id === id);
+    }
+    else if (res.length > 1) {
+      throw new Error(`Multiple stores with ${id} found`);
+    }
+    return res[0]
   }
 
   async createStore(newStore: CreateStoreDTO) {
@@ -47,22 +40,33 @@ export class StoresService {
     )
   }
 
-  updateStore(id: number, updatedStore: UpdateStoreDTO) {
-    const storeIndex = this.stores.findIndex((store) => store.store_id === id);
-    if (!this.stores[storeIndex])
-      throw new NotFoundException(`Store ${id} not found`);
-    this.stores[storeIndex] = {
-      ...this.stores[storeIndex],
-      ...updatedStore,
-    };
-    return this.stores[storeIndex];
+  async getStoresWithin({ lat, lon, distance }: StoreWithinDTO) {
+    return await this.pgdb.func(
+      "fun.get_stores_within",
+      [
+        lat,
+        lon,
+        distance
+      ]
+    );
   }
 
-  deleteStore(id: number) {
-    const storeIndex = this.stores.findIndex((store) => store.store_id === id);
-    if (!this.stores[storeIndex])
-      throw new NotFoundException(`Store ${id} not found`);
-    this.stores.splice(storeIndex, 1);
-    return true;
+  async updateStore(id: number, updatedStore: UpdateStoreDTO) {
+    const res = await this.pgdb.func(
+      "fun.update_store",
+      [
+        id,
+        updatedStore.store_name,
+        updatedStore.store_lat,
+        updatedStore.store_lon,
+        updatedStore.store_appuser_id,
+        updatedStore.store_description,
+        updatedStore.store_schedule
+      ]
+    ) as { "updated_id": number }[];
+    if (res.length == 0) {
+      throw new NotFoundException(`Store ${id} doesn't exist or it was not created by User ${updatedStore.store_appuser_id}`);
+    }
+    return res;
   }
 }
