@@ -42,12 +42,12 @@ FROM node:18.15-alpine3.17 as development
 ARG OSM2PGSQL_RUNTIME_DEPENDENCIES
 RUN apk add --no-cache bash postgresql-client ${OSM2PGSQL_RUNTIME_DEPENDENCIES}
 RUN mkdir /usr/local/share/osm2pgsql
-COPY --link --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.style /src/osm2pgsql/default.style /tmp/
+COPY --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.style /src/osm2pgsql/default.style /tmp/
 
 RUN mv /tmp/osm2pgsql /usr/local/bin/
 WORKDIR /app
 
-COPY --link --from=node_prebuild /app ./
+COPY --from=node_prebuild /app ./
 COPY . .
 RUN npm run build
 
@@ -59,7 +59,7 @@ FROM postgis/postgis:15-3.3-alpine as database
 # ARG OSM2PGSQL_RUNTIME_DEPENDENCIES
 # RUN apk add --no-cache ${OSM2PGSQL_RUNTIME_DEPENDENCIES}
 # RUN mkdir /usr/local/share/osm2pgsql
-# COPY --link --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.style /src/osm2pgsql/default.style /tmp/
+# COPY --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.style /src/osm2pgsql/default.style /tmp/
 
 # RUN mv /tmp/osm2pgsql /usr/local/bin/
 
