@@ -10,7 +10,6 @@ export class StoresService {
     @Inject("POSTGRES_PROVIDER")
     private pgdb: IDatabase<{}, IClient>
   ) {}
-  private stores = []
 
   async findOneStore(id: number) {
     const res = await this.pgdb.func(
@@ -40,7 +39,7 @@ export class StoresService {
     )
   }
 
-  async getStoresWithinDistance({ lat, lon, distance }: StoreWithinDTO) {
+  async getStoresWithinDistance({ store_lat: lat, store_lon: lon, distance }: StoreWithinDTO) {
     return await this.pgdb.func(
       "fun.get_stores_within_distance",
       [
@@ -50,13 +49,13 @@ export class StoresService {
       ]
     );
   }
-  async getStoresWithinDistanceAndName({ lat, lon, distance, namePrefix }: StoreWithinNameDTO) {
+  async getStoresWithinDistanceAndName({ store_lat: lat, store_lon: lon, distance, name_prefix: name_prefix }: StoreWithinNameDTO) {
     return await this.pgdb.func(
       "fun.get_stores_within_distance_and_name",
       [
         lat, lon,
         distance,
-        namePrefix
+        name_prefix
       ]
     );
   }

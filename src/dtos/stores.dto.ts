@@ -36,13 +36,13 @@ export class StoreWithinDTO {
   @IsNotEmpty()
   @Min(-90) // Latitudes are degrees in the range [-90,90]
   @Max(90)
-  readonly lat: number;
+  readonly store_lat: number;
 
   @IsNumber()
   @IsNotEmpty()
   @Min(-180) // Longitudes are degrees in the range [-180,180]
   @Max(180)
-  readonly lon: number;
+  readonly store_lon: number;
 
   @IsNumber()
   @IsNotEmpty()
@@ -54,5 +54,5 @@ export class StoreWithinDTO {
 export class StoreWithinNameDTO extends StoreWithinDTO {
   @IsString()
   @IsNotEmpty()
-  readonly namePrefix: string;
+  readonly name_prefix: string;
 }
