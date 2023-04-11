@@ -6,26 +6,39 @@
 // store_creation_time timestamp NOT NULL,
 // store_appuser_id int NULL REFERENCES appuser (appuser_id)
 
-import { IsNotEmpty, IsString, IsNumber, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Min, Max, IsOptional } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
+// TODO: unify coordinate validation under a DTO or custom validator
 export class CreateStoreDTO {
   @IsString()
   @IsNotEmpty()
   readonly store_name: string;
+
   @IsNumber()
   @IsNotEmpty()
-  readonly store_lon: number;
-  @IsNumber()
-  @IsNotEmpty()
+  @Min(-90) // Latitudes are degrees in the range [-90,90]
+  @Max(90)
   readonly store_lat: number;
-  //TODO create a custom validator for this
-  @IsString()
-  readonly store_description: string;
-  @IsString()
-  readonly store_schedule: string;
+
   @IsNumber()
   @IsNotEmpty()
+  @Min(-180) // Longitudes are degrees in the range [-180,180]
+  @Max(180)
+  readonly store_lon: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly store_description: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly store_schedule: string;
+
+  @IsNotEmpty() // TODO: enable this when users are implemented (and make it obligatory/not optional)
+  @IsNumber()
   readonly store_appuser_id: number;
 }
 

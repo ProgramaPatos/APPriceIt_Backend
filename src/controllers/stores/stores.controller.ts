@@ -16,7 +16,7 @@ import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO, StoreWithinNameDTO } fr
 export class StoresController {
   constructor(private storesService: StoresService) {}
 
-  @Get('/store/:storeId') //stores/1 //no hace falta poner el /stores
+  @Get(':storeId') //stores/1 //no hace falta poner el /stores
   getStore(@Param('storeId', ParseIntPipe) storeId: number) {
     return this.storesService.findOneStore(storeId);
   }
