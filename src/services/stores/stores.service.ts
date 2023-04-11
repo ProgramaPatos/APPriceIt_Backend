@@ -6,6 +6,7 @@ import pg, { IClient } from 'pg-promise/typescript/pg-subset';
 
 @Injectable()
 export class StoresService {
+  // TODO: Enable error validation from pg-promises and propagate errors
   constructor(
     @Inject("POSTGRES_PROVIDER")
     private pgdb: IDatabase<{}, IClient>
@@ -22,11 +23,11 @@ export class StoresService {
     else if (res.length > 1) {
       throw new Error(`Multiple stores with ${id} found`);
     }
-    return res[0]
+    return res[0];
   }
 
   async createStore(newStore: CreateStoreDTO) {
-    return await this.pgdb.proc(
+    const res = await this.pgdb.proc(
       "fun.create_store",
       [
         newStore.store_name,
@@ -36,7 +37,8 @@ export class StoresService {
         newStore.store_description,
         newStore.store_schedule
       ]
-    )
+    );
+    return res;
   }
 
   async getStoresWithinDistance({ store_lat: lat, store_lon: lon, distance }: StoreWithinDTO) {
