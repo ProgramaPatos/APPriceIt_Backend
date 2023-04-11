@@ -165,7 +165,7 @@ BEGIN ATOMIC
 END;
 
 
-CREATE FUNCTION fun.get_stores_within(
+CREATE FUNCTION fun.get_stores_within_distance(
        lat double precision,
        lon double precision,
        dist double precision
@@ -193,33 +193,36 @@ BEGIN ATOMIC
     FROM dev.store WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist;
 END;
 
--- CREATE FUNCTION fun.update_store(
---        id int,
---        n varchar(172),
---        lat double precision,
---        lon double precision,
---        user_id int,
---        description text,
---        schedule tstzrange
---        )
--- RETURNS int AS $$
--- DECLARE
---     r_cnt integer;
--- BEGIN
---       UPDATE dev.store
---       SET store_description = description,
---           store_name = n,
---           store_location = ST_POINT(lat,lon,4326),
---           store_schedule = schedule
---       WHERE store_id = id
---       AND store_appuser_id = user_id;
---       GET DIAGNOSTICS r_cnt = row_count;
---       RETURN r_cnt;
--- END;
--- $$
--- LANGUAGE plpgsql
--- SECURITY DEFINER;
-
+CREATE OR REPLACE FUNCTION fun.get_stores_within_distance_and_name(
+       lat double precision,
+       lon double precision,
+       dist double precision,
+       name_prefix varchar
+)
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    store_id,
+    store_name,
+    ST_AsGeoJSON(store_location)::jsonb,
+    store_description,
+    store_schedule,
+    store_creation_time,
+    store_appuser_id
+    FROM dev.store
+    WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist
+    AND   store_name LIKE name_prefix || '%';
+END;
 
 CREATE FUNCTION fun.update_store(
        id int,

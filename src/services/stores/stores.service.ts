@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Store } from '../../interfaces/stores/stores.interface';
-import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO } from '../../dtos/stores.dto';
+import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO, StoreWithinNameDTO } from '../../dtos/stores.dto';
 import { IDatabase } from 'pg-promise';
 import pg, { IClient } from 'pg-promise/typescript/pg-subset';
 
@@ -40,13 +40,23 @@ export class StoresService {
     )
   }
 
-  async getStoresWithin({ lat, lon, distance }: StoreWithinDTO) {
+  async getStoresWithinDistance({ lat, lon, distance }: StoreWithinDTO) {
     return await this.pgdb.func(
-      "fun.get_stores_within",
+      "fun.get_stores_within_distance",
       [
         lat,
         lon,
         distance
+      ]
+    );
+  }
+  async getStoresWithinDistanceAndName({ lat, lon, distance, namePrefix }: StoreWithinNameDTO) {
+    return await this.pgdb.func(
+      "fun.get_stores_within_distance_and_name",
+      [
+        lat, lon,
+        distance,
+        namePrefix
       ]
     );
   }

@@ -10,7 +10,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { StoresService } from '../../services/stores/stores.service';
-import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO } from '../../dtos/stores.dto';
+import { CreateStoreDTO, StoreWithinDTO, UpdateStoreDTO, StoreWithinNameDTO } from '../../dtos/stores.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -21,9 +21,14 @@ export class StoresController {
     return this.storesService.findOneStore(storeId);
   }
 
-  @Get('/within') //stores/1 //no hace falta poner el /stores
-  getStoreWithin(@Body() payload: StoreWithinDTO) {
-    return this.storesService.getStoresWithin(payload);
+  @Get('/within/distance')
+  getStoreWithinDistance(@Body() payload: StoreWithinDTO) {
+    return this.storesService.getStoresWithinDistance(payload);
+  }
+
+  @Get('/within/distance/name')
+  getStoreWithinDistanceAndName(@Body() payload: StoreWithinNameDTO) {
+    return this.storesService.getStoresWithinDistanceAndName(payload);
   }
 
   @Post() //casi siempre retorna un json con un post

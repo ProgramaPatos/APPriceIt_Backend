@@ -6,7 +6,7 @@
 // store_creation_time timestamp NOT NULL,
 // store_appuser_id int NULL REFERENCES appuser (appuser_id)
 
-import { IsNotEmpty, IsString, IsNumber, IsDate, isNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Min, Max } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateStoreDTO {
@@ -34,13 +34,25 @@ export class UpdateStoreDTO extends PartialType(CreateStoreDTO) {}
 export class StoreWithinDTO {
   @IsNumber()
   @IsNotEmpty()
+  @Min(-90) // Latitudes are degrees in the range [-90,90]
+  @Max(90)
   readonly lat: number;
 
   @IsNumber()
   @IsNotEmpty()
+  @Min(-180) // Longitudes are degrees in the range [-180,180]
+  @Max(180)
   readonly lon: number;
 
   @IsNumber()
   @IsNotEmpty()
+  @Min(1)
   readonly distance: number;
+
+}
+
+export class StoreWithinNameDTO extends StoreWithinDTO {
+  @IsString()
+  @IsNotEmpty()
+  readonly namePrefix: string;
 }
