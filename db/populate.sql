@@ -26,8 +26,10 @@ INSERT INTO :env.store (
        (SELECT appuser_id FROM dev.appuser)
        FROM staging.store_staging;
 
-INSERT INTO :env.tag (tag_temp_id, tag_name)
-       SELECT tag_staging_id, tag_staging_name
+INSERT INTO :env.tag (tag_temp_id, tag_name, tag_appuser_id)
+       SELECT tag_staging_id,
+              tag_staging_name,
+              (SELECT appuser_id FROM dev.appuser)
        FROM staging.tag_staging;
 
 INSERT INTO :env.storetag (storetag_store_id, storetag_tag_id)

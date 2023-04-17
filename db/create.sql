@@ -60,12 +60,14 @@ CREATE TABLE :env.store (
 CREATE TABLE :env.tag (
        tag_id SERIAL NOT NULL PRIMARY KEY,
        tag_name varchar(70) NOT NULL,
-       tag_description text
+       tag_description text,
+       tag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
 CREATE TABLE :env.storetag (
        storetag_store_id int NOT NULL REFERENCES :env.store (store_id) ON UPDATE CASCADE ON DELETE CASCADE,
        storetag_tag_id int NOT NULL REFERENCES :env.tag (tag_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       storetagtag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
        PRIMARY KEY (storetag_store_id,storetag_tag_id)
 );
 
@@ -73,12 +75,14 @@ CREATE TABLE :env.storetag (
 CREATE TABLE :env.product (
        product_id SERIAL NOT NULL PRIMARY KEY,
        product_name VARCHAR(70) NOT NULL,
-       product_description TEXT
+       product_description TEXT,
+       product_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
 CREATE TABLE :env.producttag (
        producttag_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
        producttag_tag_id int NOT NULL REFERENCES :env.tag (tag_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       producttag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
        PRIMARY KEY (producttag_product_id,producttag_tag_id)
 );
 
@@ -107,27 +111,29 @@ CREATE TABLE :env.productatstore (
        productatstore_availability int NULL,
        -- TODO:Check data type for availability
        productatstore_store_id int NOT NULL REFERENCES :env.store (store_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       productatstore_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
        productatstore_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
        productatstore_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE PROCEDURE fun.create_product(
+    user_id int,
     n varchar(70),
     description text = NULL
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.product (product_name, product_description)
-    VALUES (n, description);
+    INSERT INTO :env.product (product_appuser_id,product_name, product_description)
+    VALUES (user_id, n, description);
 END;
 
 -- STORE RELATED PROCEDURES AND FUNCTIONS
 CREATE PROCEDURE fun.create_store(
+       user_id int,
        n varchar(172),
        lat double precision,
        lon double precision,
-       user_id int = NULL,
        description text = NULL,
        schedule tstzrange = NULL
        )
@@ -142,25 +148,25 @@ CREATE FUNCTION fun.get_store(
        id int
        )
 RETURNS TABLE (
+        store_appuser_id int,
         store_id int,
         store_name varchar,
         store_location jsonb,
         store_description text,
         store_schedule tstzrange,
-        store_creation_time timestamp,
-        store_appuser_id int
+        store_creation_time timestamp
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     SELECT
+    store_appuser_id,
     store_id,
     store_name,
     ST_AsGeoJSON(store_location)::jsonb,
     store_description,
     store_schedule,
-    store_creation_time,
-    store_appuser_id
+    store_creation_time
     FROM dev.store WHERE store_id = id;
 END;
 
@@ -225,11 +231,11 @@ BEGIN ATOMIC
 END;
 
 CREATE FUNCTION fun.update_store(
+       user_id int,
        id int,
        n varchar(172),
        lat double precision,
        lon double precision,
-       user_id int,
        description text,
        schedule tstzrange
        )
@@ -252,7 +258,7 @@ END;
 CREATE PROCEDURE fun.create_user(
     n varchar(70),
     pass varchar(70),
-    state bool
+    state bool = TRUE
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -262,13 +268,13 @@ BEGIN ATOMIC
 END;
 
 CREATE PROCEDURE fun.create_price(
-    val numeric(10,2),
-    id_user int = NULL
+    user_id int,
+    val numeric(10,2)
 )
 LANGUAGE SQL
 BEGIN ATOMIC
     INSERT INTO :env.price(price_value, price_timestamp, price_appuser_id)
-    VALUES (val, NOW(), id_user);
+    VALUES (val, NOW(), user_id);
 END;
 
 CREATE PROCEDURE fun.create_role(
@@ -283,13 +289,13 @@ END;
 
 CREATE PROCEDURE fun.assign_role(
     id_role int,
-    id_user int
+    user_id int
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
-    VALUES (id_role, id_user);
+    VALUES (id_role, user_id);
 END;
 
 CREATE PROCEDURE fun.assign_product_tag(
@@ -304,17 +310,17 @@ BEGIN ATOMIC
 END;
 
 CREATE PROCEDURE fun.create_price_review(
+    user_id int,
     score int,
     id_price int,
-    comment text = NULL,
-    id_user int = NULL
+    comment text = NULL
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     INSERT INTO :env.pricereview(pricereview_score, pricereview_creation_timestamp, pricereview_modification_timestamp,
        pricereview_comment, pricereview_appuser_id, pricereview_price_id)
-    VALUES (score, NOW(), NOW(), comment, id_user, id_price);
+    VALUES (score, NOW(), NOW(), comment, user_id, id_price);
 END;
 
 CREATE PROCEDURE fun.assign_product_to_store(
