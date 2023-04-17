@@ -30,10 +30,10 @@ export class StoresService {
     const res = await this.pgdb.proc(
       "fun.create_store",
       [
+        newStore.store_appuser_id,
         newStore.store_name,
         newStore.store_lat,
         newStore.store_lon,
-        newStore.store_appuser_id,
         newStore.store_description,
         newStore.store_schedule
       ]
@@ -66,11 +66,11 @@ export class StoresService {
     const res = await this.pgdb.func(
       "fun.update_store",
       [
+        updatedStore.store_appuser_id,
         id,
         updatedStore.store_name,
         updatedStore.store_lat,
         updatedStore.store_lon,
-        updatedStore.store_appuser_id,
         updatedStore.store_description,
         updatedStore.store_schedule
       ]
