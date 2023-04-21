@@ -32,8 +32,10 @@ INSERT INTO :env.tag (tag_temp_id, tag_name, tag_appuser_id)
               (SELECT appuser_id FROM dev.appuser)
        FROM staging.tag_staging;
 
-INSERT INTO :env.storetag (storetag_store_id, storetag_tag_id)
-       SELECT store_id, tag_id
+INSERT INTO :env.storetag (storetag_store_id, storetag_tag_id, storetag_appuser_id)
+       SELECT store_id,
+              tag_id,
+              (SELECT appuser_id FROM dev.appuser)
        FROM :env.store
        LEFT JOIN staging.storetag_staging
        ON storetag_staging_store_id = store_temp_id

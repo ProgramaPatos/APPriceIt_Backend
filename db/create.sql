@@ -23,6 +23,7 @@
 
 CREATE SCHEMA :env;
 CREATE SCHEMA fun;
+CREATE SCHEMA util;
 CREATE SCHEMA staging;
 
 
@@ -67,7 +68,7 @@ CREATE TABLE :env.tag (
 CREATE TABLE :env.storetag (
        storetag_store_id int NOT NULL REFERENCES :env.store (store_id) ON UPDATE CASCADE ON DELETE CASCADE,
        storetag_tag_id int NOT NULL REFERENCES :env.tag (tag_id) ON UPDATE CASCADE ON DELETE CASCADE,
-       storetagtag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
+       storetag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
        PRIMARY KEY (storetag_store_id,storetag_tag_id)
 );
 
@@ -79,12 +80,6 @@ CREATE TABLE :env.product (
        product_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
-CREATE TABLE :env.producttag (
-       producttag_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
-       producttag_tag_id int NOT NULL REFERENCES :env.tag (tag_id) ON UPDATE CASCADE ON DELETE CASCADE,
-       producttag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
-       PRIMARY KEY (producttag_product_id,producttag_tag_id)
-);
 
 CREATE TABLE :env.price (
        price_id SERIAL NOT NULL PRIMARY KEY,
@@ -116,6 +111,35 @@ CREATE TABLE :env.productatstore (
        productatstore_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE :env.producttag (
+       producttag_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       producttag_tag_id int NOT NULL REFERENCES :env.tag (tag_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       producttag_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id),
+       PRIMARY KEY (producttag_product_id,producttag_tag_id)
+);
+
+-- UTILITY FUNCTIONS
+
+CREATE OR REPLACE FUNCTION util.AsGeoJSONFeatures(
+       geom geometry(Point,4326)
+)
+RETURNS jsonb AS
+$$
+BEGIN
+RETURN jsonb_build_object(
+'type', 'FeatureCollection',
+'features',
+ARRAY[ jsonb_build_object(
+       'type', 'Feature',
+       'geometry', ST_AsGeoJSON(geom)::jsonb) ]);
+END;
+$$
+SECURITY DEFINER
+LANGUAGE plpgsql;
+
+
+-- PRODUCT RELATED PROCEDURES AND FUNCTIONS
+
 CREATE PROCEDURE fun.create_product(
     user_id int,
     n varchar(70),
@@ -127,6 +151,28 @@ BEGIN ATOMIC
     INSERT INTO :env.product (product_appuser_id,product_name, product_description)
     VALUES (user_id, n, description);
 END;
+
+CREATE FUNCTION fun.update_product(
+       user_id int,
+       id int,
+       n varchar,
+       description text
+       )
+RETURNS TABLE (
+        updated_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      UPDATE :env.product
+      SET product_description = description,
+          product_name = n
+      WHERE product_id = id
+      AND product_appuser_id = user_id
+      RETURNING product_id;
+END;
+
+
 
 -- STORE RELATED PROCEDURES AND FUNCTIONS
 CREATE PROCEDURE fun.create_store(
@@ -167,7 +213,7 @@ BEGIN ATOMIC
     store_description,
     store_schedule,
     store_creation_time
-    FROM dev.store WHERE store_id = id;
+    FROM :env.store WHERE store_id = id;
 END;
 
 
@@ -196,7 +242,7 @@ BEGIN ATOMIC
     store_schedule,
     store_creation_time,
     store_appuser_id
-    FROM dev.store WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist;
+    FROM :env.store WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist;
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_stores_within_distance_and_name(
@@ -225,12 +271,12 @@ BEGIN ATOMIC
     store_schedule,
     store_creation_time,
     store_appuser_id
-    FROM dev.store
+    FROM :env.store
     WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist
     AND   store_name LIKE name_prefix || '%';
 END;
 
-CREATE FUNCTION fun.update_store(
+CREATE OR REPLACE FUNCTION fun.update_store(
        user_id int,
        id int,
        n varchar(172),
@@ -239,21 +285,29 @@ CREATE FUNCTION fun.update_store(
        description text,
        schedule tstzrange
        )
-RETURNS TABLE (
-        updated_id int
-)
-LANGUAGE SQL
-SECURITY DEFINER
-BEGIN ATOMIC
-      UPDATE dev.store
-      SET store_description = description,
-          store_name = n,
-          store_location = ST_POINT(lat,lon,4326),
-          store_schedule = schedule
-      WHERE store_id = id
-      AND store_appuser_id = user_id
-      RETURNING store_id;
-END;
+RETURNS INTEGER AS
+$$
+    DECLARE store_creator int;
+    BEGIN
+    SELECT store_appuser_id INTO store_creator FROM :env.store WHERE store_id = id;
+    IF NOT FOUND THEN -- Store doesn't exist
+       RETURN -1;
+    ELSEIF store_creator <> user_id THEN -- Store exists but user isn't creator
+        RETURN -2;
+    ELSE -- Store exists and user is creator so the store is updated
+        UPDATE :env.store
+        SET store_description = description,
+            store_name = n,
+            store_location = ST_POINT(lat,lon,4326),
+            store_schedule = schedule
+        WHERE store_id = id
+        AND store_appuser_id = user_id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
 
 CREATE PROCEDURE fun.create_user(
     n varchar(70),
