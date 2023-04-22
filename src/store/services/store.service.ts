@@ -98,7 +98,6 @@ export class StoreService {
         store_schedule,
       ])
     )[0].update_store;
-    console.log(res);
     if (res === -1) {
       throw new NotFoundException(`Store with id "${store_id}" does not exist`);
     } else if (res === -2) {

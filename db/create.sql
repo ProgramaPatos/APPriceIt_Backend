@@ -152,25 +152,53 @@ BEGIN ATOMIC
     VALUES (user_id, n, description);
 END;
 
+CREATE OR REPLACE FUNCTION fun.get_product(
+       id INT
+)
+RETURNS TABLE (
+       product_appuser_id INT,
+       product_id INT,
+       product_name VARCHAR(70),
+       product_description TEXT
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+      product_appuser_id,
+      product_id,
+      product_name,
+      product_description
+      FROM :env.product WHERE product_id = id;
+END;
+
 CREATE FUNCTION fun.update_product(
        user_id int,
        id int,
        n varchar,
        description text
        )
-RETURNS TABLE (
-        updated_id int
-)
-LANGUAGE SQL
-SECURITY DEFINER
-BEGIN ATOMIC
-      UPDATE :env.product
-      SET product_description = description,
-          product_name = n
-      WHERE product_id = id
-      AND product_appuser_id = user_id
-      RETURNING product_id;
-END;
+RETURNS INT AS
+$$
+    DECLARE product_creator int;
+    BEGIN
+    SELECT product_appuser_id INTO product_creator FROM dev.product WHERE product_id = id;
+    IF NOT FOUND THEN -- Store doesn't exist
+       RETURN -1;
+    ELSEIF product_creator <> user_id THEN -- Store exists but user isn't creator
+        RETURN -2;
+    ELSE -- Store exists and user is creator so the store is updated
+        UPDATE dev.store
+        SET product_description = description,
+            product_name = n
+        WHERE product_id = id
+        AND product_appuser_id = user_id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
 
 
 
@@ -289,13 +317,13 @@ RETURNS INTEGER AS
 $$
     DECLARE store_creator int;
     BEGIN
-    SELECT store_appuser_id INTO store_creator FROM :env.store WHERE store_id = id;
+    SELECT store_appuser_id INTO store_creator FROM dev.store WHERE store_id = id;
     IF NOT FOUND THEN -- Store doesn't exist
        RETURN -1;
     ELSEIF store_creator <> user_id THEN -- Store exists but user isn't creator
         RETURN -2;
     ELSE -- Store exists and user is creator so the store is updated
-        UPDATE :env.store
+        UPDATE dev.store
         SET store_description = description,
             store_name = n,
             store_location = ST_POINT(lat,lon,4326),

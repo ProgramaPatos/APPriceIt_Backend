@@ -43,7 +43,7 @@ export default class StoreCreateDTO {
   readonly store_description: string;
 
   /*
-   *
+   * @example "[1970-01-01 9:00, 1970-01-01 18:00]"
    */
   @IsString()
   @IsNotEmpty()
