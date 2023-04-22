@@ -140,7 +140,7 @@ LANGUAGE plpgsql;
 
 -- PRODUCT RELATED PROCEDURES AND FUNCTIONS
 
-CREATE PROCEDURE fun.create_product(
+CREATE OR REPLACE PROCEDURE fun.create_product(
     user_id int,
     n varchar(70),
     description text = NULL
@@ -175,7 +175,7 @@ END;
 
 
 -- STORE RELATED PROCEDURES AND FUNCTIONS
-CREATE PROCEDURE fun.create_store(
+CREATE OR REPLACE PROCEDURE fun.create_store(
        user_id int,
        n varchar(172),
        lat double precision,
@@ -309,7 +309,7 @@ $$
 LANGUAGE plpgsql
 SECURITY DEFINER;
 
-CREATE PROCEDURE fun.create_user(
+CREATE OR REPLACE PROCEDURE fun.create_user(
     n varchar(70),
     pass varchar(70),
     state bool = TRUE
@@ -321,7 +321,7 @@ BEGIN ATOMIC
     VALUES (n, pass, NOW(), state);
 END;
 
-CREATE PROCEDURE fun.create_price(
+CREATE OR REPLACE PROCEDURE fun.create_price(
     user_id int,
     val numeric(10,2)
 )
@@ -331,7 +331,7 @@ BEGIN ATOMIC
     VALUES (val, NOW(), user_id);
 END;
 
-CREATE PROCEDURE fun.create_role(
+CREATE OR REPLACE PROCEDURE fun.create_role(
     n varchar(70)
 )
 LANGUAGE SQL
@@ -341,7 +341,7 @@ BEGIN ATOMIC
     VALUES (n);
 END;
 
-CREATE PROCEDURE fun.assign_role(
+CREATE OR REPLACE PROCEDURE fun.assign_role(
     id_role int,
     user_id int
 )
@@ -352,7 +352,7 @@ BEGIN ATOMIC
     VALUES (id_role, user_id);
 END;
 
-CREATE PROCEDURE fun.assign_product_tag(
+CREATE OR REPLACE PROCEDURE fun.assign_product_tag(
     id_product int,
     id_tag int
 )
@@ -363,7 +363,7 @@ BEGIN ATOMIC
     VALUES (id_product, id_tag);
 END;
 
-CREATE PROCEDURE fun.create_price_review(
+CREATE OR REPLACE PROCEDURE fun.create_price_review(
     user_id int,
     score int,
     id_price int,
@@ -377,7 +377,7 @@ BEGIN ATOMIC
     VALUES (score, NOW(), NOW(), comment, user_id, id_price);
 END;
 
-CREATE PROCEDURE fun.assign_product_to_store(
+CREATE OR REPLACE PROCEDURE fun.assign_product_to_store(
     availability int,
     id_product int,
     id_store int,
