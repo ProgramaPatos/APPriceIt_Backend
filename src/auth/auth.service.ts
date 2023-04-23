@@ -1,27 +1,22 @@
-import { Inject, Injectable} from '@nestjs/common';
-import { IDatabase } from 'pg-promise';
-import { IClient } from 'pg-promise/typescript/pg-subset';
-import UserQueryDTO from 'src/users/dtos/user-query.dto';
-import * as argon from 'argon2';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from 'src/users/services/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
-        @Inject('POSTGRES_PROVIDER')
-        private pgdb: IDatabase<{}, IClient>,
+        private usersService: UsersService,
+        private jwtService: JwtService
     ) {}
 
-    async validateUser(userEmail: string, password: string) {
-        const user = (await this.pgdb.func('fun.get_user', [
-          userEmail,
-        ]));
-        console.log(userEmail);
-        if (!user || user.password==password) return null;
-
-        // if (user.password == ) const pwValid = await argon.verify(user.password, password);
-        // if (!pwValid) return null;
-
-        return user;
+    async signIn(username: string, pass: string): Promise<any> {
+        const user = await this.usersService.findOne(username);
+        if (user?.password !== pass) {
+        throw new UnauthorizedException();
+        }
+        const payload = { username: user.username, sub: user.userId };
+        return {
+            access_token: await this.jwtService.signAsync(payload),
+        };
     }
-
 }

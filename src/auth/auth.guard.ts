@@ -1,4 +1,4 @@
-/*import {
+import {
     CanActivate,
     ExecutionContext,
     Injectable,
@@ -22,13 +22,13 @@ import { Reflector } from '@nestjs/core';
         if (isPublic) {
             // 💡 See this condition
             return true;
-        }
+        }*/
       
         
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
-            throw new UnauthorizedException('no token');
+            throw new UnauthorizedException();
         }
         try {
             const payload = await this.jwtService.verifyAsync(
@@ -41,7 +41,7 @@ import { Reflector } from '@nestjs/core';
             // so that we can access it in our route handlers
             request['user'] = payload;
         } catch {
-            throw new UnauthorizedException('error payload');
+            throw new UnauthorizedException();
         }
         return true;
         }
@@ -50,4 +50,4 @@ import { Reflector } from '@nestjs/core';
             const [type, token] = request.headers.authorization?.split(' ') ?? [];
             return type === 'Bearer' ? token : undefined;
         }
-  }*/
+  }
