@@ -1,24 +1,39 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
-/*import { Roles } from './roles.decorator';
-import { Role } from './role.enum';
-import { Public } from './auth.module';*/
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Session, SetMetadata, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { SessionData } from 'express-session';
+import { Request } from 'express';
+
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
-
+    @SetMetadata('isPublic', true)
+    @UseGuards(AuthGuard('local'))
     @HttpCode(HttpStatus.OK)
-    @Post('login')
-    signIn(@Body() signInDto: Record<string, any>) {
-        return this.authService.signIn(signInDto.username, signInDto.password);
+    @Post('/login')
+    login(@Req() req: Request, @Session() session: SessionData) {
+        session.user = {
+        userId: req.user.userId,
+        username: req.user.username,
+        userEmail: req.user.userEmail,
+        roles: req.user.roles
+        };
+        console.log('prueba');
+        return {
+        status: HttpStatus.OK
+        };
     }
 
-    @UseGuards(AuthGuard)
-    @Get('profile')
-    //@Roles(Role.Admin)
-    getProfile(@Request() req) {
-        return req.user;
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Post('/logout')
+    logout(@Req() req: Request) {
+        return new Promise((resolve, reject) => {
+        req.session.destroy((err) => {
+            if (err) reject(err);
+            resolve({
+            status: 204,
+            message: 'Session destroyed'
+            });
+        });
+        });
     }
 }

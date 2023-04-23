@@ -2,11 +2,29 @@ INSERT INTO :env.appuser (
        appuser_name,
        appuser_password,
        appuser_state,
-       appuser_creation_date
+       appuser_creation_date,
+       appuser_email,
+       appuser_role_id
 )
-VALUES ('Admin','secret',TRUE, NOW());
+VALUES ('Admin','secret',TRUE, NOW(), 'patitos@gmail.com', 1);
 
+INSERT INTO :env.role (
+       role_id,
+       role_name
+)
+VALUES ('User');
 
+INSERT INTO :env.role (
+       role_id,
+       role_name
+)
+VALUES ('Mod');
+
+INSERT INTO :env.role (
+       role_id,
+       role_name
+)
+VALUES ('Admin');
 
 ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
 ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;
