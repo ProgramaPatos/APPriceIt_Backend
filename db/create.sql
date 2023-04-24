@@ -505,7 +505,7 @@ $$
         UPDATE dev.store
         SET store_description = description,
             store_name = n,
-            store_location = ST_POINT(lat,lon,4326),
+            store_location = ST_POINT(lon,lat,4326),
             store_schedule = schedule
         WHERE store_id = id
         AND store_appuser_id = user_id;
@@ -652,13 +652,13 @@ BEGIN ATOMIC
 END;
 
 CREATE OR REPLACE PROCEDURE fun.update_user_refresh_token(
-       email varchar(320),
-       refresh_token varchar(256)
+       id INT,
+       refresh_token VARCHAR(256)
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     UPDATE :env.appuser
     SET appuser_refresh_token = refresh_token
-    WHERE appuser_email = email;
+    WHERE appuser_id = id;
 END;
