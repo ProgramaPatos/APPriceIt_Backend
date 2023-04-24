@@ -33,7 +33,9 @@ CREATE TABLE :env.appuser (
        appuser_password VARCHAR(70) NOT NULL,
        -- TODO: add email
        appuser_creation_date TIMESTAMP NOT NULL,
-       appuser_state BOOL NOT NULL
+       appuser_state BOOL NOT NULL,
+       appuser_email VARCHAR(370) UNIQUE NOT NULL,
+       appuser_role_id INT REFERENCES :env.role (role_id)
 );
 
 CREATE TABLE :env.role (
@@ -42,11 +44,11 @@ CREATE TABLE :env.role (
 );
 
 
-CREATE TABLE :env.appuserrole (
+/*CREATE TABLE :env.appuserrole (
        appuserrole_role_id int REFERENCES :env.role (role_id) ON UPDATE CASCADE ON DELETE CASCADE,
        appuserrole_appuser_id int REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE ON DELETE CASCADE,
        PRIMARY KEY (appuserrole_appuser_id, appuserrole_role_id)
-);
+);*/
 
 CREATE TABLE :env.store (
        store_id SERIAL NOT NULL PRIMARY KEY,
@@ -312,13 +314,15 @@ SECURITY DEFINER;
 CREATE OR REPLACE PROCEDURE fun.create_user(
     n varchar(70),
     pass varchar(70),
-    state bool = TRUE
+    state bool = TRUE,
+    email varchar(370),
+    role int
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_creation_date, appuser_state)
-    VALUES (n, pass, NOW(), state);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_creation_date, appuser_state, appuser_email, appuser_role_id)
+    VALUES (n, pass, NOW(), state, email, role);
 END;
 
 CREATE OR REPLACE PROCEDURE fun.create_price(
@@ -348,8 +352,11 @@ CREATE OR REPLACE PROCEDURE fun.assign_role(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
-    VALUES (id_role, user_id);
+    /*INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
+    VALUES (id_role, user_id);*/
+    UPDATE :env.appuser 
+    SET appuser_role_id = id_role
+    WHERE appuser_id = user_id;
 END;
 
 CREATE OR REPLACE PROCEDURE fun.assign_product_tag(
@@ -397,3 +404,12 @@ END;
 -- LEFT JOIN tag
 -- ON storetag_tag_id = tag_id;
 
+CREATE OR REPLACE PROCEDURE fun.get_user(
+       email varchar(370)
+       )
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT * FROM :env.store
+      WHERE appuser_email = email;
+END;

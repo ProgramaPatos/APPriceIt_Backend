@@ -1,10 +1,21 @@
+INSERT INTO :env.role (role_name)
+VALUES ('User');
+
+INSERT INTO :env.role (role_name)
+VALUES ('Admin');
+
+INSERT INTO :env.role (role_name)
+VALUES ('Mod');
+
 INSERT INTO :env.appuser (
        appuser_name,
        appuser_password,
        appuser_state,
-       appuser_creation_date
+       appuser_creation_date,
+       appuser_email,
+       appuser_role_id
 )
-VALUES ('Admin','secret',TRUE, NOW());
+VALUES ('Admin','secret',TRUE, NOW(), 'patitos@gmail.com', 1);
 
 
 

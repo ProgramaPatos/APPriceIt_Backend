@@ -49,7 +49,7 @@ WORKDIR /app
 
 COPY --from=node_prebuild /app ./
 COPY . .
-RUN npm run build
+RUN npm install && npm run build
 
 # ENTRYPOINT [ "sh" ]
 CMD ["npm","run","start:dev"]

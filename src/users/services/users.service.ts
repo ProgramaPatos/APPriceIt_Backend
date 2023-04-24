@@ -11,6 +11,7 @@ export class UsersService {
           password: 'changeme',
           creation: '',
           state: true,
+          refreshToken: null,
         },
         {
           userId: 2,
@@ -18,11 +19,22 @@ export class UsersService {
           password: 'guess',
           creation: '',
           state: true,
+          refreshToken: null,
         },
       ];
     
       async findOne(username: string): Promise<User | undefined> {
         return this.users.find(user => user.username === username);
+      }
+
+      async updateRefreshToken(username:string, newRefreshToken: string){
+        this.users.find(user => user.username === username).refreshToken = newRefreshToken;
+
+      }
+
+      async getRefreshToken(username:string){
+        return this.users.find(user => user.username === username).refreshToken;
+
       }
     
 }

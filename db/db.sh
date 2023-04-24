@@ -154,6 +154,9 @@ done
 
 CONNECTION_STRING_WITHOUT_DATABASE="host=$HOST port=$PORT user=$ADMIN password=$ADMIN_PASSWORD"
 CONNECTION_STRING="$CONNECTION_STRING_WITHOUT_DATABASE dbname=$DATABASE"
+
+echo "Using connection strings: ${CONNECTION_STRING}"
+echo "Using connection strings: ${CONNECTION_STRING_WITHOUT_DATABASE}"
 psqldo() {
     psql "$CONNECTION_STRING" "$@"
 }
@@ -164,12 +167,12 @@ psqlnpdo() {
 
 logt() {
     TIMESTAMP=$(date +"%Y-%m-%d %T")
-    echo "[$TIMESTAMP] (\"$CONNECTION_STRING\") $1"
+    echo -n "[$TIMESTAMP] (\"$CONNECTION_STRING\") $1"
 }
 
 failt() {
     TIMESTAMP=$(date +"%Y-%m-%d %T")
-    echo "[$TIMESTAMP] ERROR: (\"$CONNECTION_STRING\") $1" >&2
+    echo -n "[$TIMESTAMP] ERROR: (\"$CONNECTION_STRING\") $1" >&2
     exit 1
 }
 # Function to check if a database exists
@@ -210,7 +213,7 @@ case $COMMAND in
         ;;
     drop)
         if [ "$TYPE" != "dev" ]; then
-            failt "Cannot drop database on a non-DEV environment"
+            failt "Cannot drop database on a non-DEV environment \"$TYPE\""
         fi
         # Prompt for confirmation before dropping the database
         read -p "Are you sure you want to drop the database $DATABASE on host $HOST? (y/n) " -n 1 -r
