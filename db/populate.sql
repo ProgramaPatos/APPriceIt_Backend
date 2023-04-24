@@ -2,9 +2,10 @@ INSERT INTO :env.appuser (
        appuser_name,
        appuser_password,
        appuser_state,
-       appuser_creation_date
+       appuser_creation_date,
+       appuser_email
 )
-VALUES ('Admin','secret',TRUE, NOW());
+VALUES ('Admin','secret',TRUE, NOW(), 'admin@gmail.com');
 
 
 

@@ -29,6 +29,7 @@ import StoreQueryDTO from '../dtos/store-query.dto';
 import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
 import { StoreService } from '../services/store.service';
+import { Public } from 'src/auth/public.decorator';
 
 
 type ProductResponse<WithPrice extends boolean> = WithPrice extends true ? ProductWithPricesResponseDTO : ProductResponseDTO;
@@ -53,6 +54,7 @@ export class StoreController {
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
+  @Public()
   searchStores(@Query() storeQuery: StoreQueryDTO): Promise<StoreResponseDTO[]> {
     return this.storeService.searchStores(storeQuery);
   }
@@ -70,6 +72,7 @@ export class StoreController {
   @ApiUnprocessableEntityResponse({
     description: 'Multiple stores with same id found.',
   })
+  //@Public()
   getStore(
     @Param('storeId', ParseIntPipe) storeId: number,
   ): Promise<StoreResponseDTO> {

@@ -33,7 +33,9 @@ CREATE TABLE :env.appuser (
        appuser_password VARCHAR(70) NOT NULL,
        -- TODO: add email
        appuser_creation_date TIMESTAMP NOT NULL,
-       appuser_state BOOL NOT NULL
+       appuser_email VARCHAR(320) UNIQUE NOT NULL,
+       appuser_state BOOL NOT NULL,
+       appuser_refresh_token VARCHAR(256) NULL 
 );
 
 CREATE TABLE :env.role (
@@ -517,13 +519,15 @@ SECURITY DEFINER;
 CREATE OR REPLACE PROCEDURE fun.create_user(
     n varchar(70),
     pass varchar(70),
+    email varchar(320),
+    refresh_token varchar(256),
     state bool = TRUE
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_creation_date, appuser_state)
-    VALUES (n, pass, NOW(), state);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state)
+    VALUES (n, pass, email, refresh_token, NOW(), state);
 END;
 
 CREATE OR REPLACE FUNCTION fun.create_price(
@@ -612,4 +616,49 @@ BEGIN ATOMIC
     INSERT INTO :env.productatstore
     (productatstore_availability, productatstore_product_id, productatstore_store_id, productatstore_appuser_id)
     VALUES (availability, id_product, id_store, user_id);
+END;
+-- -- Example query
+-- SELECT store_name, tag_name
+-- FROM store
+-- LEFT JOIN storetag
+-- ON storetag_store_id = store_id
+-- LEFT JOIN tag
+-- ON storetag_tag_id = tag_id;
+
+CREATE FUNCTION fun.get_user(
+       email varchar(320)
+       )
+RETURNS TABLE (
+        appuser_id int,
+        appuser_name varchar,
+        appuser_password varchar,
+        appuser_creation_date timestamp,
+        appuser_email varchar,
+        appuser_state bool,
+        appuser_refresh_token varchar
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    appuser_id int,
+    appuser_name varchar,
+    appuser_password varchar,
+    appuser_creation_date timestamp,
+    appuser_email varchar,
+    appuser_state bool,
+    appuser_refresh_token varchar
+    FROM :env.appuser WHERE appuser_email = email;
+END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_refresh_token(
+       email varchar(320),
+       refresh_token varchar(256)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_refresh_token = refresh_token
+    WHERE appuser_email = email;
 END;
