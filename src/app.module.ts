@@ -1,12 +1,22 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { StoresController } from './controllers/stores/stores.controller';
-import { StoresService } from './services/stores/stores.service';
+import { ConfigModule } from '@nestjs/config';
+import { StoreModule } from './store/store.module';
+import { PostgresModule } from './postgres/postgres.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController, StoresController],
-  providers: [AppService, StoresService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      expandVariables: true,
+    }),
+    StoreModule,
+    PostgresModule,
+    ProductModule,
+    AuthModule,
+    UsersModule,
+  ],
 })
 export class AppModule {}

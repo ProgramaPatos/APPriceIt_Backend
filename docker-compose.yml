@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  dev:
+    container_name: appriceit_api_dev
+    image: price_dev
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:dev
+    # command: sh
+    # tty: true
+    ports:
+      - 3000:3000
+    networks:
+      - appriceit-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+    links:
+      - "db:${DB_HOST}"
+    restart: unless-stopped
+
+  db:
+    container_name: appriceit_db
+    image: price_db
+    hostname: prueba
+    restart: always
+    build:
+      context: .
+      target: database
+      dockerfile: ./Dockerfile
+    environment:
+      POSTGRES_PASSWORD: example
+    ports:
+      - 5432:5432
+    networks:
+      - appriceit-network
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+networks:
+  appriceit-network:

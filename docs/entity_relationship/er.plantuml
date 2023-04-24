@@ -28,12 +28,12 @@ Entity Store {
 
 
 entity AppUser {
-    * user_id: autoincrement int
+    * appuser_id: autoincrement int
     --
-    * user_name: varchar(70)
-    * user_password: varchar(70)
-    * user_creation_timestamp: timestamp
-    * user_state: bool
+    * appuser_name: varchar(70)
+    * appuser_password: varchar(70)
+    * appuser_creation_timestamp: timestamp
+    * appuser_state: bool
 }
 
 AppUser |o--o{ Store: Creates
@@ -54,6 +54,7 @@ Entity Product {
     product_description: Text
 }
 
+AppUser }o--|{ Product : Creates
 
 Entity Tag {
     * tag_id: autoincrement int
@@ -62,9 +63,13 @@ Entity Tag {
     tag_description: Text
 }
 
+AppUser |o--o{ Tag : Creates
 
-Product }o--o{ Tag : is Categorized within
+/' A tag for a store like "pharmacy" or <brandname>'/
 Store }o--o{ Tag : is Categorized within
+/' is better to just tag products at stores and stores
+Product }o--o{ Tag : is Categorized within
+ '/
 
 Entity Price {
     * price_id: autoincrement int
@@ -109,8 +114,10 @@ Entity ProductAtStore {
 
 ProductAtStore }o--|| Store : offers
 ProductAtStore }o--|| Product : is offered as
+ProductAtStore }o--o{ Tag : is Categorized within
 
 ProductAtStore ||--o{ Price : costs
+AppUser ||--o{ ProductAtStore : Creates
 
 
 @enduml
