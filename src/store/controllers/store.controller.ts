@@ -95,6 +95,7 @@ export class StoreController {
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
+  @Public()
   getStoreProducts<W extends StoreProductsQueryDTO>(@Param("storeId", ParseIntPipe) storeId: number, @Query() storeProductsQuery: W): Promise<ProductResponse<W['withPrices']>[]> {
     return this.storeService.getStoreProducts(storeId, storeProductsQuery);
   }

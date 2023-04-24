@@ -1,5 +1,6 @@
 import { Controller, Get, ParseIntPipe, Param, Put, HttpCode, Body, HttpStatus, Post, SetMetadata, Query } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiUnprocessableEntityResponse, ApiOkResponse, ApiNoContentResponse, ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/auth/public.decorator';
 import ProductCreateDTO from 'src/product/dto/product-create.dto';
 import { ProductQueryDTO } from 'src/product/dto/product-query.dto';
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
@@ -23,6 +24,7 @@ export class ProductController {
     @ApiNotFoundResponse({
         description: 'No product matches `name`'
     })
+    @Public()
     searchProduct(@Query() query: ProductQueryDTO) {
         return this.productService.searchProduct(query);
     }
@@ -38,6 +40,7 @@ export class ProductController {
     @ApiUnprocessableEntityResponse({
         description: 'Multiple products with same id found.'
     })
+    @Public()
     getProduct(
         @Param('productId', ParseIntPipe) productId: number
     ) {
