@@ -77,15 +77,27 @@ CREATE TABLE :env.product (
        product_id SERIAL NOT NULL PRIMARY KEY,
        product_name VARCHAR(70) NOT NULL,
        product_description TEXT,
+       product_creation_time timestamp NOT NULL,
        product_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
 
+
+CREATE TABLE :env.productatstore (
+       productatstore_id SERIAL NOT NULL PRIMARY KEY,
+       productatstore_availability int NULL,
+       -- TODO:Check data type for availability
+       productatstore_store_id int NOT NULL REFERENCES :env.store (store_id) ON UPDATE CASCADE ON DELETE CASCADE,
+       productatstore_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
+       productatstore_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 CREATE TABLE :env.price (
        price_id SERIAL NOT NULL PRIMARY KEY,
        price_value NUMERIC(10,2) NOT NULL,
-       price_timestamp timestamp NOT NULL,
-       price_appuser_id int NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE
+       price_creation_time timestamp NOT NULL,
+       price_appuser_id INT NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
+       price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE
 );
 
 CREATE TABLE :env.pricereview (
@@ -99,17 +111,6 @@ CREATE TABLE :env.pricereview (
 );
 
 
-
-
-CREATE TABLE :env.productatstore (
-       productatstore_id SERIAL NOT NULL PRIMARY KEY,
-       productatstore_availability int NULL,
-       -- TODO:Check data type for availability
-       productatstore_store_id int NOT NULL REFERENCES :env.store (store_id) ON UPDATE CASCADE ON DELETE CASCADE,
-       productatstore_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
-       productatstore_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
-       productatstore_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE ON DELETE CASCADE
-);
 
 CREATE TABLE :env.producttag (
        producttag_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -148,8 +149,8 @@ CREATE OR REPLACE PROCEDURE fun.create_product(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.product (product_appuser_id,product_name, product_description)
-    VALUES (user_id, n, description);
+    INSERT INTO :env.product (product_appuser_id,product_name, product_description, product_creation_time)
+    VALUES (user_id, n, description, NOW());
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_product(
@@ -159,7 +160,8 @@ RETURNS TABLE (
        product_appuser_id INT,
        product_id INT,
        product_name VARCHAR(70),
-       product_description TEXT
+       product_description TEXT,
+       product_creation_time timestamp
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -168,11 +170,43 @@ BEGIN ATOMIC
       product_appuser_id,
       product_id,
       product_name,
-      product_description
+      product_description,
+      product_creation_time
       FROM :env.product WHERE product_id = id;
 END;
 
-CREATE FUNCTION fun.update_product(
+-- CREATE OR REPLACE FUNCTION fun.get_product_within_distance(
+--        id int,
+--        lat double precision,
+--        lon double precision,
+--        dist double precision
+-- )
+-- LANGUAGE SQL
+-- SECURITY DEFINER
+-- RETURNS TABLE (
+--        product_appuser_id INT,
+--        product_id INT,
+--        product_name VARCHAR(70),
+--        product_description TEXT,
+--        product_creation_time timestamp,
+--        product_distance double precision,
+--        product_store jsonb
+-- )
+-- BEGIN ATOMIC
+--       SELECT
+--       product_appuser_id,
+--       product_id,
+--       product_name,
+--       product_description,
+--       product_creation_time,
+--       product_distance,
+
+
+
+-- END;
+
+
+CREATE OR REPLACE FUNCTION fun.update_product(
        user_id int,
        id int,
        n varchar,
@@ -199,6 +233,28 @@ $$
 $$
 LANGUAGE plpgsql
 SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION fun.get_product_with_name(
+       n varchar
+)
+RETURNS TABLE (
+       product_appuser_id INT,
+       product_id INT,
+       product_name VARCHAR(70),
+       product_description TEXT,
+       product_creation_time timestamp
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+      product_appuser_id,
+      product_id,
+      product_name,
+      product_description,
+      product_creation_time
+      FROM :env.product WHERE product_name LIKE n || '%';
+END;
 
 
 
@@ -228,7 +284,8 @@ RETURNS TABLE (
         store_location jsonb,
         store_description text,
         store_schedule tstzrange,
-        store_creation_time timestamp
+        store_creation_time timestamp,
+        store_distance double precision
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -240,7 +297,8 @@ BEGIN ATOMIC
     ST_AsGeoJSON(store_location)::jsonb,
     store_description,
     store_schedule,
-    store_creation_time
+    store_creation_time,
+    -1 as store_distance
     FROM :env.store WHERE store_id = id;
 END;
 
@@ -257,7 +315,8 @@ RETURNS TABLE (
         store_description text,
         store_schedule tstzrange,
         store_creation_time timestamp,
-        store_appuser_id int
+        store_appuser_id int,
+        store_distance double precision
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -269,8 +328,15 @@ BEGIN ATOMIC
     store_description,
     store_schedule,
     store_creation_time,
-    store_appuser_id
-    FROM :env.store WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist;
+    store_appuser_id,
+    store_distance
+    FROM (
+        SELECT
+        *,
+        ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) as store_distance
+        FROM :env.store
+    ) sub_dist
+    WHERE sub_dist.store_distance < dist;
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_stores_within_distance_and_name(
@@ -286,23 +352,134 @@ RETURNS TABLE (
         store_description text,
         store_schedule tstzrange,
         store_creation_time timestamp,
-        store_appuser_id int
+        store_appuser_id int,
+        store_distance double precision
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     SELECT
-    store_id,
-    store_name,
-    ST_AsGeoJSON(store_location)::jsonb,
-    store_description,
-    store_schedule,
-    store_creation_time,
-    store_appuser_id
-    FROM :env.store
-    WHERE ST_DistanceSphere(ST_Point(lon,lat,4326),store_location) < dist
-    AND   store_name LIKE name_prefix || '%';
+    *
+    FROM fun.get_stores_within_distance(lat, lon, dist)
+    WHERE store_name LIKE name_prefix || '%';
 END;
+
+CREATE OR REPLACE FUNCTION fun.get_store_products(
+       id int
+)
+RETURNS TABLE (
+       product_appuser_id INT,
+       product_id INT,
+       product_name VARCHAR(70),
+       product_description TEXT,
+       product_creation_time timestamp,
+       product_availability INT
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+      product_appuser_id,
+      product_id,
+      product_name,
+      product_description,
+      product_creation_time,
+      productatstore_availability as product_availability
+      FROM :env.productatstore
+      INNER JOIN :env.product ON productatstore_product_id = product_id
+      WHERE productatstore_store_id = id;
+END;
+
+CREATE OR REPLACE FUNCTION fun.get_stores_product_within_distance(
+       prod_id INT,
+       lat double precision,
+       lon double precision,
+       radius double precision
+)
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int,
+        store_distance double precision,
+        store_products jsonb[]
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+        s.*,ARRAY[to_jsonb(p.*)] as store_products
+      FROM :env.product p
+      INNER JOIN :env.productatstore pats ON productatstore_product_id = product_id
+      INNER JOIN fun.get_stores_within_distance(lat,lon,radius) s ON productatstore_store_id = store_id
+      WHERE product_id = prod_id
+      ORDER BY store_distance DESC;
+END;
+
+
+CREATE OR REPLACE FUNCTION fun.get_stores_product_with_prices_within_distance(
+       prod_id INT,
+       lat double precision,
+       lon double precision,
+       radius double precision
+)
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int,
+        store_distance double precision,
+        store_products jsonb[]
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+        s.*,ARRAY[to_jsonb(p.*)] as store_products
+      FROM :env.product p
+      INNER JOIN :env.productatstore pats ON productatstore_product_id = product_id
+      INNER JOIN fun.get_stores_within_distance(lat,lon,radius) s ON productatstore_store_id = store_id
+      WHERE product_id = prod_id
+      ORDER BY store_distance DESC;
+END;
+
+
+CREATE OR REPLACE FUNCTION fun.get_store_products_with_prices(
+       id int
+)
+RETURNS TABLE (
+       product_appuser_id INT,
+       product_id INT,
+       product_name VARCHAR(70),
+       product_description TEXT,
+       product_creation_time timestamp,
+       product_availability INT,
+       product_prices jsonb
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+      product_appuser_id,
+      product_id,
+      product_name,
+      product_description,
+      product_creation_time,
+      SUM(productatstore_availability) as product_availability,
+      jsonb_agg(to_jsonb(price) - 'price_productatstore_id') as prices
+      FROM :env.productatstore
+      INNER JOIN :env.product ON productatstore_product_id = product_id
+      LEFT JOIN :env.price ON productatstore_id = price_productatstore_id
+      WHERE productatstore_store_id = id
+      GROUP BY product_id;
+END;
+
 
 CREATE OR REPLACE FUNCTION fun.update_store(
        user_id int,
@@ -349,15 +526,33 @@ BEGIN ATOMIC
     VALUES (n, pass, NOW(), state);
 END;
 
-CREATE OR REPLACE PROCEDURE fun.create_price(
+CREATE OR REPLACE FUNCTION fun.create_price(
     user_id int,
+    id_product INT,
+    id_store INT,
     val numeric(10,2)
 )
-LANGUAGE SQL
-BEGIN ATOMIC
-    INSERT INTO :env.price(price_value, price_timestamp, price_appuser_id)
-    VALUES (val, NOW(), user_id);
+RETURNS INT AS
+$$
+DECLARE
+    productatstore_found_id int;
+BEGIN
+    SELECT productatstore_id INTO productatstore_found_id
+    FROM dev.productatstore
+    WHERE productatstore_store_id = id_store
+    AND productatstore_product_id = id_product;
+    IF NOT FOUND THEN
+       RETURN -1;
+    ELSE
+        INSERT INTO dev.price
+        (price_value, price_creation_time, price_appuser_id, price_productatstore_id)
+        VALUES (val, NOW(), user_id,productatstore_found_id);
+        RETURN 0;
+    END IF;
 END;
+$$
+SECURITY DEFINER
+LANGUAGE plpgsql ;
 
 CREATE OR REPLACE PROCEDURE fun.create_role(
     n varchar(70)
@@ -406,22 +601,15 @@ BEGIN ATOMIC
 END;
 
 CREATE OR REPLACE PROCEDURE fun.assign_product_to_store(
-    availability int,
-    id_product int,
-    id_store int,
-    id_price int
+    user_id INT,
+    id_product INT,
+    id_store INT,
+    availability INT = NULL
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.productatstore(productatstore_availability, productatstore_product_id, productatstore_store_id, productatstore_price_id)
-    VALUES (availability, id_product, id_store, id_price);
+    INSERT INTO :env.productatstore
+    (productatstore_availability, productatstore_product_id, productatstore_store_id, productatstore_appuser_id)
+    VALUES (availability, id_product, id_store, user_id);
 END;
--- -- Example query
--- SELECT store_name, tag_name
--- FROM store
--- LEFT JOIN storetag
--- ON storetag_store_id = store_id
--- LEFT JOIN tag
--- ON storetag_tag_id = tag_id;
-

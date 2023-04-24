@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsInt,
   IsJSON,
   IsNotEmpty,
   IsNumber,
@@ -63,7 +64,14 @@ export default class StoreResponseDTO {
   /*
    * @example 1
    */
-  @IsNumber()
+  @IsInt()
   @IsNotEmpty()
   store_appuser_id: number;
+
+  /*
+   * Distance in metters from user location
+   */
+  @IsNumber()
+  @IsNotEmpty()
+  store_distance: number;
 }

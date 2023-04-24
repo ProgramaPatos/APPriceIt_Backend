@@ -11,24 +11,32 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiExtraModels,
   ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse,
+  refs,
 } from '@nestjs/swagger';
+import ProductResponseDTO from 'src/product/dto/product-response.dto';
+import ProductWithPricesResponseDTO from 'src/product/dto/product-with-prices-response.dto';
 import StoreCreateDTO from '../dtos/store-create.dto';
+import StoreProductsQueryDTO from '../dtos/store-products-query.dto';
 import StoreQueryDTO from '../dtos/store-query.dto';
 import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
 import { StoreService } from '../services/store.service';
 
+
+type ProductResponse<WithPrice extends boolean> = WithPrice extends true ? ProductWithPricesResponseDTO : ProductResponseDTO;
+
 @ApiTags('store')
 @Controller('store')
 export class StoreController {
-  constructor(private storesService: StoreService) {}
-
+  constructor(private storeService: StoreService) {}
 
   // Be careful with the order of these two methods, if the :id route
   // is defined first it will validate an int, 'search' isn't an id so it fails
@@ -45,9 +53,10 @@ export class StoreController {
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
-  searchStores(@Query() storeQuery: StoreQueryDTO) {
-    return this.storesService.searchStores(storeQuery);
+  searchStores(@Query() storeQuery: StoreQueryDTO): Promise<StoreResponseDTO[]> {
+    return this.storeService.searchStores(storeQuery);
   }
+
 
   /*
    * Returns information of store with `storeId`
@@ -63,10 +72,29 @@ export class StoreController {
   })
   getStore(
     @Param('storeId', ParseIntPipe) storeId: number,
-  ): Promise<StoreQueryDTO> {
-    return this.storesService.findOneStore(storeId);
+  ): Promise<StoreResponseDTO> {
+    return this.storeService.findOneStore(storeId);
   }
 
+
+  /*
+   * Gets products registered for store
+   */
+  @Get(':storeId/products')
+  @ApiTags("product")
+  @ApiQuery({
+    type: StoreProductsQueryDTO
+  })
+  @ApiExtraModels(ProductWithPricesResponseDTO)
+  @ApiOkResponse({
+    description: 'One or more products found for store.',
+    schema: { oneOf: refs(ProductResponseDTO, ProductWithPricesResponseDTO) },
+    isArray: true,
+  })
+  @ApiNotFoundResponse({ description: 'No store found.' })
+  getStoreProducts<W extends StoreProductsQueryDTO>(@Param("storeId", ParseIntPipe) storeId: number, @Query() storeProductsQuery: W): Promise<ProductResponse<W['withPrices']>[]> {
+    return this.storeService.getStoreProducts(storeId, storeProductsQuery);
+  }
   /*
    * Creates a new store
    */
@@ -75,8 +103,8 @@ export class StoreController {
   @ApiNoContentResponse({
     description: 'The store has been successfully created.',
   })
-  createStore(@Body() payload: StoreCreateDTO): any {
-    this.storesService.createStore(payload);
+  createStore(@Body() payload: StoreCreateDTO): void {
+    this.storeService.createStore(payload);
   }
 
   /*
@@ -92,8 +120,8 @@ export class StoreController {
   updateStore(
     @Param('storeId', ParseIntPipe) storeId: number,
     @Body() payload: StoreUpdateDTO,
-  ) {
-    this.storesService.updateStore(storeId, payload);
+  ): void {
+    this.storeService.updateStore(storeId, payload);
   }
 
   // TODO: add delete method
