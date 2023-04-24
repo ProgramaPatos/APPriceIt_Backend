@@ -222,7 +222,7 @@ $$
     ELSEIF product_creator <> user_id THEN -- Store exists but user isn't creator
         RETURN -2;
     ELSE -- Store exists and user is creator so the store is updated
-        UPDATE dev.store
+        UPDATE dev.product
         SET product_description = description,
             product_name = n
         WHERE product_id = id
