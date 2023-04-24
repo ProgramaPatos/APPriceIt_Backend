@@ -167,12 +167,12 @@ psqlnpdo() {
 
 logt() {
     TIMESTAMP=$(date +"%Y-%m-%d %T")
-    echo -n "[$TIMESTAMP] (\"$CONNECTION_STRING\") $1"
+    echo "[$TIMESTAMP] (\"$CONNECTION_STRING\") $1"
 }
 
 failt() {
     TIMESTAMP=$(date +"%Y-%m-%d %T")
-    echo -n "[$TIMESTAMP] ERROR: (\"$CONNECTION_STRING\") $1" >&2
+    echo "[$TIMESTAMP] ERROR: (\"$CONNECTION_STRING\") $1" >&2
     exit 1
 }
 # Function to check if a database exists
