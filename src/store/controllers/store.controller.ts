@@ -19,6 +19,7 @@ import {
   ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse,
+  ApiBearerAuth,
   refs,
 } from '@nestjs/swagger';
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
@@ -34,6 +35,7 @@ import { Public } from 'src/auth/public.decorator';
 
 type ProductResponse<WithPrice extends boolean> = WithPrice extends true ? ProductWithPricesResponseDTO : ProductResponseDTO;
 
+@ApiBearerAuth()
 @ApiTags('store')
 @Controller('store')
 export class StoreController {
@@ -54,7 +56,6 @@ export class StoreController {
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
-  @Public()
   searchStores(@Query() storeQuery: StoreQueryDTO): Promise<StoreResponseDTO[]> {
     return this.storeService.searchStores(storeQuery);
   }

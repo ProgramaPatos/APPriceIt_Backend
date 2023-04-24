@@ -1,33 +1,46 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, SetMetadata } from '@nestjs/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
-import * as authModule from '../../auth.module';
 import { Public } from '../../public.decorator';
+import SignInResponseDTO from 'src/auth/dtos/signin-response.dto';
+import RefreshRequestDTO from 'src/auth/dtos/refresh-request.dto';
+import SignInRequestDTO from 'src/auth/dtos/signin-request.dto';
+import { ApiTags } from '@nestjs/swagger';
 /*import { Roles } from './roles.decorator';
 import { Role } from './role.enum';
 import { Public } from './auth.module';*/
 
 
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
 
+    /*
+     * Login endpoint, use credentials to get access and refresh token
+     */
     @HttpCode(HttpStatus.OK)
     @Public()
     @Post('login')
-    signIn(@Body() signInDto: Record<string, any>) {
-        console.log('patitos');
-        return this.authService.signIn(signInDto.username, signInDto.password);
+    signIn(@Body() signInRequest: SignInRequestDTO): Promise<SignInResponseDTO> {
+        return this.authService.signIn(signInRequest);
     }
 
+    /*
+     * Endpoint to get a new access token fron an access one.
+     */
+    @Public()
     @Post('refresh')
-    async refresh(@Body('refresh_token') refreshToken: string) {
+    async refresh(@Body() refreshToken: RefreshRequestDTO) {
         console.log(refreshToken);
         return this.authService.refresh(refreshToken);
     }
 
 
+    /*
+     * Test endpoint. TODO: Remove
+     */
     @UseGuards(AuthGuard)
     @Get('profile')
     getProfile(@Request() req) {

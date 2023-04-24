@@ -22,6 +22,7 @@ async function bootstrap() {
     .setTitle('APPriceit')
     .setDescription('API description')
     .setVersion('0.1')
+    .addBearerAuth({ type: 'http', in: 'header' })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

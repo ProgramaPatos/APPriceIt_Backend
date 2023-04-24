@@ -1,5 +1,5 @@
 import { Controller, Get, ParseIntPipe, Param, Put, HttpCode, Body, HttpStatus, Post, SetMetadata, Query } from '@nestjs/common';
-import { ApiNotFoundResponse, ApiUnprocessableEntityResponse, ApiOkResponse, ApiNoContentResponse, ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiUnprocessableEntityResponse, ApiOkResponse, ApiNoContentResponse, ApiForbiddenResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import ProductCreateDTO from 'src/product/dto/product-create.dto';
 import { ProductQueryDTO } from 'src/product/dto/product-query.dto';
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
@@ -7,6 +7,8 @@ import { ProductUpdateDTO } from 'src/product/dto/product-update.dto';
 import { ProductService } from 'src/product/services/product/product.service';
 
 
+
+@ApiBearerAuth()
 @ApiTags('product')
 @Controller('product')
 export class ProductController {
