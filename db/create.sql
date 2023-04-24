@@ -33,9 +33,9 @@ CREATE TABLE :env.appuser (
        appuser_password VARCHAR(70) NOT NULL,
        -- TODO: add email
        appuser_creation_date TIMESTAMP NOT NULL,
+       appuser_email VARCHAR(320) UNIQUE NOT NULL,
        appuser_state BOOL NOT NULL,
-       appuser_email VARCHAR(370) UNIQUE NOT NULL,
-       appuser_role_id INT REFERENCES :env.role (role_id)
+       appuser_refresh_token VARCHAR(256) NULL 
 );
 
 CREATE TABLE :env.role (
@@ -44,11 +44,11 @@ CREATE TABLE :env.role (
 );
 
 
-/*CREATE TABLE :env.appuserrole (
+CREATE TABLE :env.appuserrole (
        appuserrole_role_id int REFERENCES :env.role (role_id) ON UPDATE CASCADE ON DELETE CASCADE,
        appuserrole_appuser_id int REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE ON DELETE CASCADE,
        PRIMARY KEY (appuserrole_appuser_id, appuserrole_role_id)
-);*/
+);
 
 CREATE TABLE :env.store (
        store_id SERIAL NOT NULL PRIMARY KEY,
@@ -154,25 +154,53 @@ BEGIN ATOMIC
     VALUES (user_id, n, description);
 END;
 
+CREATE OR REPLACE FUNCTION fun.get_product(
+       id INT
+)
+RETURNS TABLE (
+       product_appuser_id INT,
+       product_id INT,
+       product_name VARCHAR(70),
+       product_description TEXT
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+      SELECT
+      product_appuser_id,
+      product_id,
+      product_name,
+      product_description
+      FROM :env.product WHERE product_id = id;
+END;
+
 CREATE FUNCTION fun.update_product(
        user_id int,
        id int,
        n varchar,
        description text
        )
-RETURNS TABLE (
-        updated_id int
-)
-LANGUAGE SQL
-SECURITY DEFINER
-BEGIN ATOMIC
-      UPDATE :env.product
-      SET product_description = description,
-          product_name = n
-      WHERE product_id = id
-      AND product_appuser_id = user_id
-      RETURNING product_id;
-END;
+RETURNS INT AS
+$$
+    DECLARE product_creator int;
+    BEGIN
+    SELECT product_appuser_id INTO product_creator FROM dev.product WHERE product_id = id;
+    IF NOT FOUND THEN -- Store doesn't exist
+       RETURN -1;
+    ELSEIF product_creator <> user_id THEN -- Store exists but user isn't creator
+        RETURN -2;
+    ELSE -- Store exists and user is creator so the store is updated
+        UPDATE dev.store
+        SET product_description = description,
+            product_name = n
+        WHERE product_id = id
+        AND product_appuser_id = user_id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
 
 
 
@@ -314,15 +342,15 @@ SECURITY DEFINER;
 CREATE OR REPLACE PROCEDURE fun.create_user(
     n varchar(70),
     pass varchar(70),
-    state bool = TRUE,
-    email varchar(370),
-    role int
+    email varchar(320),
+    refresh_token varchar(256),
+    state bool = TRUE
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_creation_date, appuser_state, appuser_email, appuser_role_id)
-    VALUES (n, pass, NOW(), state, email, role);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state)
+    VALUES (n, pass, email, refresh_token, NOW(), state);
 END;
 
 CREATE OR REPLACE PROCEDURE fun.create_price(
@@ -352,11 +380,8 @@ CREATE OR REPLACE PROCEDURE fun.assign_role(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    /*INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
-    VALUES (id_role, user_id);*/
-    UPDATE :env.appuser 
-    SET appuser_role_id = id_role
-    WHERE appuser_id = user_id;
+    INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
+    VALUES (id_role, user_id);
 END;
 
 CREATE OR REPLACE PROCEDURE fun.assign_product_tag(
@@ -404,12 +429,40 @@ END;
 -- LEFT JOIN tag
 -- ON storetag_tag_id = tag_id;
 
-CREATE OR REPLACE PROCEDURE fun.get_user(
-       email varchar(370)
+CREATE FUNCTION fun.get_user(
+       email varchar(320)
        )
+RETURNS TABLE (
+        appuser_id int,
+        appuser_name varchar,
+        appuser_password varchar,
+        appuser_creation_date timestamp,
+        appuser_email varchar,
+        appuser_state bool,
+        appuser_refresh_token varchar
+)
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-      SELECT * FROM :env.store
-      WHERE appuser_email = email;
+    SELECT
+    appuser_id int,
+    appuser_name varchar,
+    appuser_password varchar,
+    appuser_creation_date timestamp,
+    appuser_email varchar,
+    appuser_state bool,
+    appuser_refresh_token varchar
+    FROM :env.appuser WHERE appuser_email = email;
+END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_refresh_token(
+       email varchar(320),
+       refresh_token varchar(256)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_refresh_token = refresh_token
+    WHERE appuser_email = email;
 END;
