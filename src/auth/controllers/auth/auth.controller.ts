@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, SetMetadata } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, SetMetadata, Query } from '@nestjs/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { Public } from '../../public.decorator';

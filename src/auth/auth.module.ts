@@ -5,10 +5,7 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
-//import { RolesGuard } from './roles.guard';
-
-//export const IS_PUBLIC_KEY = 'public';
-//export const Public : () => CustomDecorator  = () => SetMetadata(IS_PUBLIC_KEY, true);
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [AuthController],
@@ -25,14 +22,18 @@ import { APP_GUARD } from '@nestjs/core';
   ],
   imports: [
     UsersModule,
-    JwtModule.register({
-      global: true,
-      secret: 'cuaaack',
-      signOptions: { expiresIn: '1h' },
-      verifyOptions: {}
-    }),
-  ],
-  exports: [AuthService], 
+    JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => {
+        return {
+          secret: config.get<string>('JWT_SECRET_KEY'),
+          signOptions: {
+            expiresIn: config.get<string | number>('JWT_ACCESS_EXPIRATION_TIME'),
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),],
+  exports: [AuthService],
 
 })
 export class AuthModule {}

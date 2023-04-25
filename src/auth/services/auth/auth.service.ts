@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { classToPlain, instanceToPlain, plainToClass, plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -12,7 +13,8 @@ import { UsersService } from 'src/users/services/users.service';
 export class AuthService {
     constructor(
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private configService: ConfigService
     ) {}
     async signIn({ userName, password }: SignInRequestDTO): Promise<SignInResponseDTO> {
         const user = await this.usersService.findOne(userName);
@@ -22,11 +24,8 @@ export class AuthService {
         const payload: TokenPayloadDTO = { userName: user.appuser_name, userEmail: user.appuser_email, userId: user.appuser_id };
         const tokens = {
             accessToken: await this.jwtService.signAsync(payload),
-            refreshToken: await this.jwtService.signAsync(payload, { expiresIn: '7d' }),
+            refreshToken: await this.jwtService.signAsync(payload, { expiresIn: this.configService.get("JWT_REFRESH_EXPIRATION_TIME") }),
         };
-        /*await new Promise(resolve => setTimeout(resolve, 10000));
-        console.log('access_token verify: ', this.jwtService.verify(token.access_token));
-        console.log('refresh_token verify: ', this.jwtService.verify(token.refresh_token));*/
         await this.usersService.updateRefreshToken(user.appuser_id, tokens.refreshToken);
         return tokens;
     }
