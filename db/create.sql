@@ -1,30 +1,8 @@
--- DROP SCHEMA IF EXISTS app CASCADE;
--- DROP SCHEMA IF EXISTS staging CASCADE;
--- DROP PROCEDURE IF EXISTS app.create_store;
--- DROP PROCEDURE IF EXISTS app.create_product;
--- DROP PROCEDURE IF EXISTS app.create_user;
--- DROP PROCEDURE IF EXISTS app.create_role;
--- DROP PROCEDURE IF EXISTS app.create_price;
--- DROP PROCEDURE IF EXISTS app.assign_role;
--- DROP PROCEDURE IF EXISTS app.assign_product_tag;
--- DROP PROCEDURE IF EXISTS app.create_price_review;
--- DROP PROCEDURE IF EXISTS app.assign_product_to_store;
--- DROP TABLE IF EXISTS app.producttag;
--- DROP TABLE IF EXISTS app.productatstore;
--- DROP TABLE IF EXISTS app.storetag;
--- DROP TABLE IF EXISTS app.appuserrole;
--- DROP TABLE IF EXISTS app.pricereview;
--- DROP TABLE IF EXISTS app.tag;
--- DROP TABLE IF EXISTS app.product;
--- DROP TABLE IF EXISTS app.price;
--- DROP TABLE IF EXISTS app.store;
--- DROP TABLE IF EXISTS app.role;
--- DROP TABLE IF EXISTS app.appuser;
-
 CREATE SCHEMA :env;
 CREATE SCHEMA fun;
 CREATE SCHEMA util;
 CREATE SCHEMA staging;
+
 
 
 CREATE TABLE :env.appuser (
@@ -60,6 +38,8 @@ CREATE TABLE :env.store (
        store_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
 
+ALTER TABLE :env.store ALTER COLUMN store_creation_time SET DEFAULT NOW();
+
 CREATE TABLE :env.tag (
        tag_id SERIAL NOT NULL PRIMARY KEY,
        tag_name varchar(70) NOT NULL,
@@ -82,6 +62,7 @@ CREATE TABLE :env.product (
        product_creation_time timestamp NOT NULL,
        product_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id)
 );
+ALTER TABLE :env.product ALTER COLUMN product_creation_time SET DEFAULT NOW();
 
 
 
@@ -101,17 +82,19 @@ CREATE TABLE :env.price (
        price_appuser_id INT NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
        price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE
 );
+ALTER TABLE :env.price ALTER COLUMN price_creation_time SET DEFAULT NOW();
 
 CREATE TABLE :env.pricereview (
        pricereview_id SERIAL NOT NULL PRIMARY KEY,
        pricereview_score INT NOT NULL,
-       pricereview_creation_timestamp timestamp NOT NULL,
-       pricereview_modification_timestamp timestamp NOT NULL,
+       pricereview_creation_time timestamp NOT NULL,
+       pricereview_modification_time timestamp NOT NULL,
        pricereview_comment TEXT,
        pricereview_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
        pricereview_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE
 );
 
+ALTER TABLE :env.pricereview ALTER COLUMN pricereview_creation_time SET DEFAULT NOW();
 
 
 CREATE TABLE :env.producttag (
@@ -599,7 +582,7 @@ CREATE OR REPLACE PROCEDURE fun.create_price_review(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.pricereview(pricereview_score, pricereview_creation_timestamp, pricereview_modification_timestamp,
+    INSERT INTO :env.pricereview(pricereview_score, pricereview_creation_time, pricereview_modification_time,
        pricereview_comment, pricereview_appuser_id, pricereview_price_id)
     VALUES (score, NOW(), NOW(), comment, user_id, id_price);
 END;
