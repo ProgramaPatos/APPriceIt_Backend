@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsInt,
   IsJSON,
@@ -8,6 +9,12 @@ import {
   IsString,
 } from 'class-validator';
 import { Point } from 'geojson';
+
+
+class GeoPoint implements Point {
+  type: "Point" = "Point";
+  coordinates: number[];
+}
 
 export default class StoreResponseDTO {
   /*
@@ -33,10 +40,10 @@ export default class StoreResponseDTO {
     example: {
       type: 'Point',
       coordinates: [-74.091117035, 4.63663201],
-    },
-    type: 'GeoJSON.Point',
+    }
   })
-  store_location: Point;
+  @Type(() => GeoPoint)
+  store_location: GeoPoint;
 
   /*
    * @example "Repositorio de revistas de la UN"
