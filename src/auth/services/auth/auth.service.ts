@@ -8,6 +8,7 @@ import SignInRequestDTO from 'src/auth/dtos/signin-request.dto';
 import SignInResponseDTO from 'src/auth/dtos/signin-response.dto';
 import TokenPayloadDTO from 'src/auth/dtos/token-payload.dto';
 import { userService } from 'src/user/services/user.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,9 @@ export class AuthService {
     ) {}
     async signIn({ userName, password }: SignInRequestDTO): Promise<SignInResponseDTO> {
         const user = await this.usersService.findOne(userName);
-        if (user?.appuser_password !== password || !user) {
+        //console.log(user.appuser_password);
+        //console.log(await bcrypt.compare(password, user.appuser_password));
+        if (!user || !await bcrypt.compare(password, user.appuser_password)) {
             throw new UnauthorizedException('Invalid credentials');
         }
         const payload: TokenPayloadDTO = { userName: user.appuser_name, userEmail: user.appuser_email, userId: user.appuser_id };

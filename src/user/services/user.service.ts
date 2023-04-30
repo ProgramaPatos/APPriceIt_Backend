@@ -2,6 +2,8 @@ import { Injectable, Inject, NotFoundException, UnprocessableEntityException } f
 import { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import UserSearchDTO from '../dtos/user-search.dto';
+import UserCreateDTO from '../dtos/user-create.dto';
+import * as bcrypt from 'bcrypt';
 
 export type User = any;
 
@@ -54,5 +56,13 @@ export class userService {
     return (await this.findOne(email)).appuser_refresh_token;
 
   }
-
+  //TODO: Add refresh token to user and email verification
+  async createUser(newUser: UserCreateDTO) {
+    await this.pgdb.proc('fun.create_user', [
+      newUser.appuser_name,
+      await bcrypt.hash(newUser.appuser_password,12),
+      newUser.appuser_email,
+      null
+    ]);
+  }
 }

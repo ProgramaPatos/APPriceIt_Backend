@@ -7,7 +7,7 @@ CREATE SCHEMA staging;
 
 CREATE TABLE :env.appuser (
        appuser_id SERIAL NOT NULL PRIMARY KEY,
-       appuser_name VARCHAR(70) UNIQUE NOT NULL,
+       appuser_name VARCHAR(70) NOT NULL,
        appuser_password VARCHAR(70) NOT NULL,
        -- TODO: add email
        appuser_creation_date TIMESTAMP NOT NULL,
