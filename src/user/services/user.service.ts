@@ -5,7 +5,7 @@ import UserSearchDTO from '../dtos/user-search.dto';
 
 
 @Injectable()
-export class UsersService {
+export class userService {
   // private readonly users = [
   //     {
   //       userId: 1,

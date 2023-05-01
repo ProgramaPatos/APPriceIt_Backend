@@ -7,12 +7,12 @@ import RefreshRequestDTO from 'src/auth/dtos/refresh-request.dto';
 import SignInRequestDTO from 'src/auth/dtos/signin-request.dto';
 import SignInResponseDTO from 'src/auth/dtos/signin-response.dto';
 import TokenPayloadDTO from 'src/auth/dtos/token-payload.dto';
-import { UsersService } from 'src/users/services/users.service';
+import { userService } from 'src/user/services/user.service';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private usersService: UsersService,
+        private usersService: userService,
         private jwtService: JwtService,
         private configService: ConfigService
     ) {}

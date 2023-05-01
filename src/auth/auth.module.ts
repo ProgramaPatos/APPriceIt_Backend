@@ -1,7 +1,7 @@
 import { Module, SetMetadata, CustomDecorator } from '@nestjs/common';
 import { AuthController } from './controllers/auth/auth.controller';
 import { AuthService } from './services/auth/auth.service';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
