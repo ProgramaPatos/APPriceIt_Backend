@@ -4,6 +4,7 @@ import { Public } from 'src/auth/public.decorator';
 import UserCreateDTO from 'src/user/dtos/user-create.dto';
 import { userService } from 'src/user/services/user.service';
 import { ApiNoContentResponse } from '@nestjs/swagger';
+import UserUpdateDTO from 'src/user/dtos/user-update.dto';
 
 @Controller('user')
 export class UserController {
@@ -14,7 +15,7 @@ export class UserController {
     //@UseGuards(AuthGuard)
     @Get('profile')
     getProfile(@Request() req) {
-        return req.user;
+        return this.userService.findOne(req.user.userEmail);
     }
 
     /*
@@ -22,8 +23,9 @@ export class UserController {
      */
     //@UseGuards(AuthGuard)
     @Put('profile')
-    updateProfile(@Request() req, @Response() res) {
-        return req.user;
+    updateProfile(@Request() req, @Body() body: UserUpdateDTO) {
+        //check authorization
+        this.userService.updateUserInfo(req.user.userId, body);
     }
 
     /*

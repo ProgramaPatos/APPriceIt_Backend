@@ -645,3 +645,49 @@ BEGIN ATOMIC
     SET appuser_refresh_token = refresh_token
     WHERE appuser_id = id;
 END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_name(
+       id INT,
+       username varchar(70)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_name = username
+    WHERE appuser_id = id;
+END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_password(
+       id INT,
+       pass varchar(70)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_password = pass
+    WHERE appuser_id = id;
+END;
+
+/*CREATE OR REPLACE PROCEDURE fun.update_user_info(
+       id INT,
+       username varchar(70) = NULL, 
+       pass varchar(70) = NULL
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    
+    IF username IS NOT NULL AND pass IS NOT NULL THEN 
+        CALL fun.update_user_name(id, username),
+        CALL fun.update_user_password(id, pass); 
+    END IF;
+    IF username IS NOT NULL THEN
+        CALL fun.update_user_name(id, username);
+        END IF;
+    IF pass IS NOT NULL THEN
+        CALL fun.update_user_password(id, pass);
+    END IF;
+    
+END;*/

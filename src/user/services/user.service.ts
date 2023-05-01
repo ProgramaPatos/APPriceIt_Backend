@@ -3,6 +3,7 @@ import { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import UserSearchDTO from '../dtos/user-search.dto';
 import UserCreateDTO from '../dtos/user-create.dto';
+import UserUpdateDTO from '../dtos/user-update.dto';
 import * as bcrypt from 'bcrypt';
 
 export type User = any;
@@ -64,5 +65,23 @@ export class userService {
       newUser.appuser_email,
       null
     ]);
+  }
+
+  async updateUserInfo(id: number, updateUser: UserUpdateDTO) {
+    //TODO:Validate data
+    if(updateUser.appuser_name != null){
+      await this.pgdb.proc('fun.update_user_name', [
+        id,
+        updateUser.appuser_name
+      ]);
+
+    }
+    if(updateUser.appuser_password != null) {
+      await this.pgdb.proc('fun.update_user_password', [
+        id,
+        await bcrypt.hash(updateUser.appuser_password,12),
+      ]);
+    }
+    
   }
 }
