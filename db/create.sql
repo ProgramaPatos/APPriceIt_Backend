@@ -4,29 +4,29 @@ CREATE SCHEMA util;
 CREATE SCHEMA staging;
 
 
-
-CREATE TABLE :env.appuser (
-       appuser_id SERIAL NOT NULL PRIMARY KEY,
-       appuser_name VARCHAR(70) NOT NULL,
-       appuser_password VARCHAR(70) NOT NULL,
-       -- TODO: add email
-       appuser_creation_date TIMESTAMP NOT NULL,
-       appuser_email VARCHAR(320) UNIQUE NOT NULL,
-       appuser_state BOOL NOT NULL,
-       appuser_refresh_token VARCHAR(256) NULL 
-);
-
 CREATE TABLE :env.role (
        role_id SERIAL NOT NULL PRIMARY KEY,
        role_name VARCHAR(70) NOT NULL
 );
 
+CREATE TABLE :env.appuser (
+       appuser_id SERIAL NOT NULL PRIMARY KEY,
+       appuser_name VARCHAR(70) NOT NULL,
+       appuser_password VARCHAR(70) NOT NULL,
+       appuser_creation_date TIMESTAMP NOT NULL,
+       appuser_email VARCHAR(320) UNIQUE NOT NULL,
+       appuser_state BOOL NOT NULL,
+       appuser_refresh_token VARCHAR(256) NULL,
+       appuser_role_id INT NOT NULL REFERENCES :env.role (role_id)
+);
 
+
+/*
 CREATE TABLE :env.appuserrole (
        appuserrole_role_id int REFERENCES :env.role (role_id) ON UPDATE CASCADE ON DELETE CASCADE,
        appuserrole_appuser_id int REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE ON DELETE CASCADE,
        PRIMARY KEY (appuserrole_appuser_id, appuserrole_role_id)
-);
+);*/
 
 CREATE TABLE :env.store (
        store_id SERIAL NOT NULL PRIMARY KEY,
@@ -509,8 +509,8 @@ CREATE OR REPLACE PROCEDURE fun.create_user(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state)
-    VALUES (n, pass, email, refresh_token, NOW(), state);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state, appuser_role_id)
+    VALUES (n, pass, email, refresh_token, NOW(), state, 1);
 END;
 
 CREATE OR REPLACE FUNCTION fun.create_price(
@@ -558,8 +558,9 @@ CREATE OR REPLACE PROCEDURE fun.assign_role(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
-    VALUES (id_role, user_id);
+    UPDATE :env.appuser
+    SET appuser_role_id = id_role
+    WHERE appuser_id = user_id;
 END;
 
 CREATE OR REPLACE PROCEDURE fun.assign_product_tag(
@@ -618,7 +619,8 @@ RETURNS TABLE (
         appuser_creation_date timestamp,
         appuser_email varchar,
         appuser_state bool,
-        appuser_refresh_token varchar
+        appuser_refresh_token varchar, 
+        appuser_role_id int
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -630,7 +632,8 @@ BEGIN ATOMIC
     appuser_creation_date timestamp,
     appuser_email varchar,
     appuser_state bool,
-    appuser_refresh_token varchar
+    appuser_refresh_token varchar,
+    appuser_role_id int
     FROM :env.appuser WHERE appuser_email = email;
 END;
 
@@ -670,24 +673,3 @@ BEGIN ATOMIC
     WHERE appuser_id = id;
 END;
 
-/*CREATE OR REPLACE PROCEDURE fun.update_user_info(
-       id INT,
-       username varchar(70) = NULL, 
-       pass varchar(70) = NULL
-)
-LANGUAGE SQL
-SECURITY DEFINER
-BEGIN ATOMIC
-    
-    IF username IS NOT NULL AND pass IS NOT NULL THEN 
-        CALL fun.update_user_name(id, username),
-        CALL fun.update_user_password(id, pass); 
-    END IF;
-    IF username IS NOT NULL THEN
-        CALL fun.update_user_name(id, username);
-        END IF;
-    IF pass IS NOT NULL THEN
-        CALL fun.update_user_password(id, pass);
-    END IF;
-    
-END;*/

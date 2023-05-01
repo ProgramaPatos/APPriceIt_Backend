@@ -4,8 +4,8 @@ import {
     IsOptional,
     IsString,
     IsEmail,
-    Max,
-    Min,
+    MaxLength,
+    MinLength,
   } from 'class-validator';
   
   export default class UserUpdateDTO {
@@ -14,8 +14,8 @@ import {
      */
     @IsOptional()
     @IsString()
-    //@Min(3)
-    //@Max(20)
+    @MinLength(3)
+    @MaxLength(40)
     readonly appuser_name: string;
 
     /*
@@ -23,8 +23,8 @@ import {
      */
     @IsOptional()
     @IsString()
-    //@Min(7)
-    //@Max(40)
+    @MinLength(7)
+    @MaxLength(40)
     readonly appuser_password: string;
   }
   

@@ -1,11 +1,9 @@
 import {
     IsNotEmpty,
-    IsNumber,
-    IsOptional,
     IsString,
     IsEmail,
-    Max,
-    Min,
+    MaxLength,
+    MinLength,
   } from 'class-validator';
   
   export default class UserCreateDTO {
@@ -14,6 +12,8 @@ import {
      */
     @IsString()
     @IsNotEmpty()
+    @MinLength(3)
+    @MaxLength(20)
     readonly appuser_name: string;
   
     /*
@@ -28,6 +28,8 @@ import {
      */
     @IsString()
     @IsNotEmpty()
+    @MinLength(7)
+    @MaxLength(40)
     readonly appuser_password: string;
   }
   

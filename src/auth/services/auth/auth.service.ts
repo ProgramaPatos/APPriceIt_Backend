@@ -51,4 +51,9 @@ export class AuthService {
             throw new UnauthorizedException(error.message);
         }
     }
+
+    async logOut(id: number){
+        await this.usersService.updateRefreshToken(id, "");
+
+    }
 }

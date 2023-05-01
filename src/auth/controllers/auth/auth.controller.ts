@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Request, UseGuards, SetMetadata, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Response, Request, UseGuards, SetMetadata, Query } from '@nestjs/common';
 import { AuthService } from '../../services/auth/auth.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { Public } from '../../public.decorator';
@@ -27,10 +27,15 @@ export class AuthController {
         return this.authService.signIn(signInRequest);
     }
 
+    @Put('logout')
+    logOut(@Request() req){
+        this.authService.logOut(req.user.userId);
+
+    }
+
     /*
      * Endpoint to get a new access token fron an access one.
      */
-    @Public()
     @Post('refresh')
     async refresh(@Body() refreshToken: RefreshRequestDTO) {
         console.log(refreshToken);
