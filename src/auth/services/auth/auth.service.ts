@@ -24,7 +24,7 @@ export class AuthService {
         if (!user || !await bcrypt.compare(password, user.appuser_password)) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        const payload: TokenPayloadDTO = { userName: user.appuser_name, userEmail: user.appuser_email, userId: user.appuser_id };
+        const payload: TokenPayloadDTO = { userName: user.appuser_name, userEmail: user.appuser_email, userId: user.appuser_id, roles: user.appuser_role };
         const tokens = {
             accessToken: await this.jwtService.signAsync(payload),
             refreshToken: await this.jwtService.signAsync(payload, { expiresIn: this.configService.get("JWT_REFRESH_EXPIRATION_TIME") }),

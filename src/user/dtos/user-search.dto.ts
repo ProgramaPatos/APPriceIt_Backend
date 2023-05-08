@@ -7,6 +7,7 @@ import {
     IsDate,
     IsEmail,
   } from 'class-validator';
+import { Role } from '../role/role.enum';
   
   // TODO: unify coordinate validation under a DTO or custom validator
   export default class UserSearchDTO {
@@ -45,6 +46,12 @@ import {
     @IsEmail()
     @IsNotEmpty()
     readonly appuser_email: string;
+
+    /*
+     * @example "Admin"
+     */
+    @IsNotEmpty()
+    readonly appuser_role: Role;
 
     /*
      * @example "true"

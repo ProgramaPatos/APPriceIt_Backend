@@ -5,6 +5,8 @@ import { PostgresModule } from './postgres/postgres.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './user/user.module';
 import { ProductModule } from './product/product.module';
+import { AccessControlModule } from 'nest-access-control';
+import { roles } from './user/role/role.enum';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { ProductModule } from './product/product.module';
     ProductModule,
     AuthModule,
     UsersModule,
+    AccessControlModule.forRoles(roles),
   ],
 })
 export class AppModule {}

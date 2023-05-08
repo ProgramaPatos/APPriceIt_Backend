@@ -5,6 +5,7 @@ import UserCreateDTO from 'src/user/dtos/user-create.dto';
 import { userService } from 'src/user/services/user.service';
 import { ApiNoContentResponse } from '@nestjs/swagger';
 import UserUpdateDTO from 'src/user/dtos/user-update.dto';
+import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
 
 @Controller('user')
 export class UserController {
@@ -23,6 +24,12 @@ export class UserController {
      */
     //@UseGuards(AuthGuard)
     @Put('profile')
+    @UseGuards(ACGuard)
+    @UseRoles({
+        possession: 'any',
+        action: 'update',
+        resource: 'user-state'
+    })
     updateProfile(@Request() req, @Body() body: UserUpdateDTO) {
         //check authorization
         this.userService.updateUserInfo(req.user.userId, body);
@@ -36,6 +43,6 @@ export class UserController {
     @Post('signUp')//
     signUp(@Body() body: UserCreateDTO): void {
         this.userService.createUser(body);
-        console.log(body);
+        //console.log(body);
     }
 }

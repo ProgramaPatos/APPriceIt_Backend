@@ -1,6 +1,6 @@
-CALL fun.create_role('User');
+/*CALL fun.create_role('User');
 CALL fun.create_role('Mod');
-CALL fun.create_role('Admin');
+CALL fun.create_role('Admin');*/
 
 INSERT INTO :env.appuser (
        appuser_name,
@@ -8,11 +8,12 @@ INSERT INTO :env.appuser (
        appuser_state,
        appuser_creation_date,
        appuser_email, 
-       appuser_role_id
+       appuser_role
 )
-VALUES ('Admin','secret',TRUE, NOW(), 'admin@gmail.com', 1);
+VALUES ('Admin','$2b$12$HVcZcyTkU9q.MkRCPlmQsOx29LrHnjuytQPa.aWB2oHwU7GODgFEi',TRUE, NOW(), 'admin1@gmail.com', 'Admin');
+/*password: secretos*/
 
-CALL fun.assign_role(3,1);
+CALL fun.assign_role('Admin', 4);
 
 ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
 ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;

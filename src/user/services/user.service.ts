@@ -59,6 +59,7 @@ export class userService {
   }
   //TODO: Add refresh token to user and email verification
   async createUser(newUser: UserCreateDTO) {
+    console.log(await bcrypt.hash(newUser.appuser_password,12));
     await this.pgdb.proc('fun.create_user', [
       newUser.appuser_name,
       await bcrypt.hash(newUser.appuser_password,12),

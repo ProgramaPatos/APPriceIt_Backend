@@ -6,6 +6,7 @@ import SignInResponseDTO from 'src/auth/dtos/signin-response.dto';
 import RefreshRequestDTO from 'src/auth/dtos/refresh-request.dto';
 import SignInRequestDTO from 'src/auth/dtos/signin-request.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
 /*import { Roles } from './roles.decorator';
 import { Role } from './role.enum';
 import { Public } from './auth.module';*/
@@ -46,7 +47,12 @@ export class AuthController {
     /*
      * Test endpoint. TODO: Remove
      */
-    @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard,ACGuard)
+    @UseRoles({
+        possession: 'any',
+        action: 'read',
+        resource: 'user'
+    })
     @Get('profile')
     getProfile(@Request() req) {
         return req.user;

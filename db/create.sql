@@ -4,10 +4,12 @@ CREATE SCHEMA util;
 CREATE SCHEMA staging;
 
 
-CREATE TABLE :env.role (
+/*CREATE TABLE :env.role (
        role_id SERIAL NOT NULL PRIMARY KEY,
        role_name VARCHAR(70) NOT NULL
-);
+);*/
+
+CREATE TYPE role as ENUM('User', 'Mod', 'Admin');
 
 CREATE TABLE :env.appuser (
        appuser_id SERIAL NOT NULL PRIMARY KEY,
@@ -17,7 +19,7 @@ CREATE TABLE :env.appuser (
        appuser_email VARCHAR(320) UNIQUE NOT NULL,
        appuser_state BOOL NOT NULL,
        appuser_refresh_token VARCHAR(256) NULL,
-       appuser_role_id INT NOT NULL REFERENCES :env.role (role_id)
+       appuser_role role
 );
 
 
@@ -509,8 +511,8 @@ CREATE OR REPLACE PROCEDURE fun.create_user(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state, appuser_role_id)
-    VALUES (n, pass, email, refresh_token, NOW(), state, 1);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state, appuser_role)
+    VALUES (n, pass, email, refresh_token, NOW(), state, 'User');
 END;
 
 CREATE OR REPLACE FUNCTION fun.create_price(
@@ -541,25 +543,24 @@ $$
 SECURITY DEFINER
 LANGUAGE plpgsql ;
 
-CREATE OR REPLACE PROCEDURE fun.create_role(
-    n varchar(70)
+/*CREATE OR REPLACE PROCEDURE fun.create_role(
+    n role
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.role(role_name)
-    VALUES (n);
-END;
+    ALTER TYPE role ADD VALUE 'prueba';
+END;*/
 
 CREATE OR REPLACE PROCEDURE fun.assign_role(
-    id_role int,
+    role_name role,
     user_id int
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     UPDATE :env.appuser
-    SET appuser_role_id = id_role
+    SET appuser_role = role_name
     WHERE appuser_id = user_id;
 END;
 
@@ -620,7 +621,7 @@ RETURNS TABLE (
         appuser_email varchar,
         appuser_state bool,
         appuser_refresh_token varchar, 
-        appuser_role_id int
+        appuser_role role
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -633,7 +634,7 @@ BEGIN ATOMIC
     appuser_email varchar,
     appuser_state bool,
     appuser_refresh_token varchar,
-    appuser_role_id int
+    appuser_role role
     FROM :env.appuser WHERE appuser_email = email;
 END;
 

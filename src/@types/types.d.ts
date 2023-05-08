@@ -7,7 +7,7 @@ declare module 'express' {
             userId: number;
             userName: string;
             userEmail: string;
-            userRole: Role;
+            roles: Role;
             userState: boolean;
         };
     }
