@@ -21,7 +21,8 @@ CREATE TABLE :env.appuser (
        appuser_refresh_token VARCHAR(256) NULL,
        appuser_role role
 );
-
+CREATE INDEX appuser_id_idx ON :env.appuser (appuser_id);
+CREATE INDEX appuser_email_idx ON :env.appuser (appuser_email);
 
 /*
 CREATE TABLE :env.appuserrole (
@@ -41,6 +42,8 @@ CREATE TABLE :env.store (
 );
 
 ALTER TABLE :env.store ALTER COLUMN store_creation_time SET DEFAULT NOW();
+CREATE INDEX store_id_idx ON :env.store (store_id);
+CREATE INDEX store_name_idx ON :env.store (store_name);
 
 CREATE TABLE :env.tag (
        tag_id SERIAL NOT NULL PRIMARY KEY,
@@ -66,7 +69,8 @@ CREATE TABLE :env.product (
 );
 ALTER TABLE :env.product ALTER COLUMN product_creation_time SET DEFAULT NOW();
 
-
+CREATE INDEX product_id_idx ON :env.product(product_id);
+CREATE INDEX product_name_idx ON :env.product(product_name);
 
 CREATE TABLE :env.productatstore (
        productatstore_id SERIAL NOT NULL PRIMARY KEY,
@@ -76,6 +80,10 @@ CREATE TABLE :env.productatstore (
        productatstore_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
        productatstore_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
+CREATE INDEX productatstore_appuser_id_idx ON :env.productatstore (productatstore_appuser_id);
+CREATE INDEX productatstore_store_id_idx ON :env.productatstore (productatstore_store_id);
+CREATE INDEX productatstore_product_id_idx ON :env.productatstore (productatstore_product_id);
+
 
 CREATE TABLE :env.price (
        price_id SERIAL NOT NULL PRIMARY KEY,
@@ -350,6 +358,36 @@ BEGIN ATOMIC
     FROM fun.get_stores_within_distance(lat, lon, dist)
     WHERE store_name LIKE name_prefix || '%';
 END;
+
+CREATE OR REPLACE FUNCTION fun.get_stores_within_distance_and_product(
+       lat double precision,
+       lon double precision,
+       dist double precision,
+       product_id int
+)
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int,
+        store_distance double precision
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    *
+    FROM fun.get_stores_within_distance(lat, lon, dist)
+    WHERE store_id IN (
+        SELECT productatstore_store_id
+        FROM :env.productatstore
+        WHERE productatstore_product_id = product_id;
+    );
+END;
+
 
 CREATE OR REPLACE FUNCTION fun.get_store_products(
        id int

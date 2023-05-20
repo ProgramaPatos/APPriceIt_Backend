@@ -37,8 +37,12 @@ export default class StoreQueryDTO {
   /*
    * @example B
    */
-  @IsString()
+  /*@IsString()
   @IsNotEmpty()
   @IsOptional()
-  readonly name_prefix?: string;
+  readonly name_prefix?: string;*/
+
+  @IsNumber()
+  @IsNotEmpty()
+  readonly product_id: number;
 }

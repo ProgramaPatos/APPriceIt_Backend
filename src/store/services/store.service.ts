@@ -50,15 +50,15 @@ export class StoreService {
     lat,
     lon,
     distance,
-    name_prefix,
+    product_id,
   }: StoreQueryDTO): Promise<StoreResponseDTO[]> {
     let res: StoreResponseDTO[];
-    if (name_prefix) {
-      res = await this.pgdb.func('fun.get_stores_within_distance_and_name', [
+    if (product_id) {
+      res = await this.pgdb.func('fun.get_stores_within_distance_and_product', [
         lat,
         lon,
         distance,
-        name_prefix,
+        product_id,
       ]);
     } else {
       res = await this.pgdb.func('fun.get_stores_within_distance', [
@@ -70,8 +70,8 @@ export class StoreService {
 
     if (res.length === 0) {
       throw new NotFoundException(
-        `No store within ${distance} meters of (${lat},${lon})` +
-        (name_prefix ? ` with prefix "${name_prefix}""` : ''),
+        `No store within ${distance} meters from (${lat},${lon})` +
+        (product_id ? ` with product "${product_id}""` : ''),
       );
     }
     return res;
