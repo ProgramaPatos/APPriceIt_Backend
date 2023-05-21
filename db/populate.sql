@@ -9,20 +9,20 @@ VALUES ('Admin','secret',TRUE, NOW(), 'admin@gmail.com');
 
 
 
-ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
-ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;
+ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL UNIQUE;
+ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL UNIQUE;
 
 INSERT INTO :env.store (
        store_temp_id,
        store_name,
-       store_location,
+       store_location_21897,
        store_creation_time,
        store_appuser_id
        )
        SELECT
        store_staging_id,
        COALESCE(store_staging_name,'store name missing'),
-       ST_TRANSFORM(store_staging_geom, 4326),
+       store_staging_geom,
        NOW(),
        (SELECT appuser_id FROM dev.appuser)
        FROM staging.store_staging;

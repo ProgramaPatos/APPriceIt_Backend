@@ -19,7 +19,7 @@ local poi_db_table = osm2pgsql.define_table({
   columns = {
     { column = poi_st_name_pre .. 'name' },
     { column = poi_st_name_pre .. 'id',   type = 'bigint', not_null = true },
-    { column = poi_st_name_pre .. 'geom', type = 'point',  not_null = true },
+    { column = poi_st_name_pre .. 'geom', type = 'point',  not_null = true, projection = 21897},
   }
 })
 -- A manual autoincrement id to facilitate post staging processing,

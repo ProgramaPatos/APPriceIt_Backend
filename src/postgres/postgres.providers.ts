@@ -3,9 +3,9 @@ import * as pgPromise from 'pg-promise';
 
 const initOptions = {
   // Use this to debug queries if needed
-  // query(e) {
-  //     console.log(e.query);
-  // }
+  query(e) {
+    console.log(e.query);
+  },
   error(err, e) {
     if (e.cn) {
       // this is a connection-related error
