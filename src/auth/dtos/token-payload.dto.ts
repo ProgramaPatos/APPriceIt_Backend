@@ -1,5 +1,6 @@
 import { Expose } from "class-transformer";
 import { IsEmail, IsInt, IsNotEmpty, IsString } from "class-validator";
+import { Role } from "src/user/role/role.enum";
 
 export default class TokenPayloadDTO {
     @Expose()
@@ -14,4 +15,8 @@ export default class TokenPayloadDTO {
     @Expose()
     @IsInt()
     readonly userId: number;
+
+    @Expose()
+    @IsNotEmpty()
+    readonly roles: Role;
 }

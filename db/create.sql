@@ -4,29 +4,31 @@ CREATE SCHEMA util;
 CREATE SCHEMA staging;
 
 
+/*CREATE TABLE :env.role (
+       role_id SERIAL NOT NULL PRIMARY KEY,
+       role_name VARCHAR(70) NOT NULL
+);*/
+
+CREATE TYPE role as ENUM('User', 'Mod', 'Admin');
 
 CREATE TABLE :env.appuser (
        appuser_id SERIAL NOT NULL PRIMARY KEY,
-       appuser_name VARCHAR(70) UNIQUE NOT NULL,
+       appuser_name VARCHAR(70) NOT NULL,
        appuser_password VARCHAR(70) NOT NULL,
-       -- TODO: add email
        appuser_creation_date TIMESTAMP NOT NULL,
        appuser_email VARCHAR(320) UNIQUE NOT NULL,
        appuser_state BOOL NOT NULL,
-       appuser_refresh_token VARCHAR(256) NULL 
-);
-
-CREATE TABLE :env.role (
-       role_id SERIAL NOT NULL PRIMARY KEY,
-       role_name VARCHAR(70) NOT NULL
+       appuser_refresh_token VARCHAR(256) NULL,
+       appuser_role role DEFAULT 'User'
 );
 
 
+/*
 CREATE TABLE :env.appuserrole (
        appuserrole_role_id int REFERENCES :env.role (role_id) ON UPDATE CASCADE ON DELETE CASCADE,
        appuserrole_appuser_id int REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE ON DELETE CASCADE,
        PRIMARY KEY (appuserrole_appuser_id, appuserrole_role_id)
-);
+);*/
 
 CREATE TABLE :env.store (
        store_id SERIAL NOT NULL PRIMARY KEY,
@@ -478,8 +480,8 @@ CREATE OR REPLACE PROCEDURE fun.create_user(
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state)
-    VALUES (n, pass, email, refresh_token, NOW(), state);
+    INSERT INTO :env.appuser (appuser_name, appuser_password, appuser_email, appuser_refresh_token, appuser_creation_date, appuser_state, appuser_role)
+    VALUES (n, pass, email, refresh_token, NOW(), state, 'User');
 END;
 
 CREATE OR REPLACE FUNCTION fun.create_price(
@@ -510,25 +512,25 @@ $$
 SECURITY DEFINER
 LANGUAGE plpgsql ;
 
-CREATE OR REPLACE PROCEDURE fun.create_role(
-    n varchar(70)
+/*CREATE OR REPLACE PROCEDURE fun.create_role(
+    n role
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.role(role_name)
-    VALUES (n);
-END;
+    ALTER TYPE role ADD VALUE 'prueba';
+END;*/
 
 CREATE OR REPLACE PROCEDURE fun.assign_role(
-    id_role int,
+    role_name role,
     user_id int
 )
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
-    INSERT INTO :env.appuserrole(appuserrole_role_id, appuserrole_appuser_id)
-    VALUES (id_role, user_id);
+    UPDATE :env.appuser
+    SET appuser_role = role_name
+    WHERE appuser_id = user_id;
 END;
 
 CREATE OR REPLACE PROCEDURE fun.assign_product_tag(
@@ -587,7 +589,8 @@ RETURNS TABLE (
         appuser_creation_date timestamp,
         appuser_email varchar,
         appuser_state bool,
-        appuser_refresh_token varchar
+        appuser_refresh_token varchar, 
+        appuser_role role
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -599,7 +602,8 @@ BEGIN ATOMIC
     appuser_creation_date timestamp,
     appuser_email varchar,
     appuser_state bool,
-    appuser_refresh_token varchar
+    appuser_refresh_token varchar,
+    appuser_role role
     FROM :env.appuser WHERE appuser_email = email;
 END;
 
@@ -614,3 +618,28 @@ BEGIN ATOMIC
     SET appuser_refresh_token = refresh_token
     WHERE appuser_id = id;
 END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_name(
+       id INT,
+       username varchar(70)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_name = username
+    WHERE appuser_id = id;
+END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_password(
+       id INT,
+       pass varchar(70)
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_password = pass
+    WHERE appuser_id = id;
+END;
+

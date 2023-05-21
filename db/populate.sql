@@ -1,12 +1,17 @@
+/*CALL fun.create_role('User');
+CALL fun.create_role('Mod');
+CALL fun.create_role('Admin');*/
+
 INSERT INTO :env.appuser (
        appuser_name,
        appuser_password,
        appuser_state,
        appuser_creation_date,
-       appuser_email
+       appuser_email, 
+       appuser_role
 )
-VALUES ('Admin','secret',TRUE, NOW(), 'admin@gmail.com');
-
+VALUES ('Admin','$2b$12$HVcZcyTkU9q.MkRCPlmQsOx29LrHnjuytQPa.aWB2oHwU7GODgFEi',TRUE, NOW(), 'admin1@gmail.com', 'Admin');
+/*password: secretos*/
 
 
 ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL UNIQUE;

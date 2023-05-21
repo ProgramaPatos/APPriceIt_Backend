@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './user/user.module';
 import { ProductModule } from './product/product.module';
 import { AppLoggerMiddleware } from './middlewares/app-logger.middleware';
+import { AccessControlModule } from 'nest-access-control';
+import { roles } from './user/role/role.enum';
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { AppLoggerMiddleware } from './middlewares/app-logger.middleware';
     ProductModule,
     AuthModule,
     UsersModule,
+    AccessControlModule.forRoles(roles),
   ],
 })
 export class AppModule {
