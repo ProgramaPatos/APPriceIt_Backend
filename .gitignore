@@ -112,3 +112,7 @@ db/.luarc.json
 
 # ignore postgres data
 postgres-data/
+
+
+# history vscode dir
+.history/

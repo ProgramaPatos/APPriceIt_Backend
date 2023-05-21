@@ -47,7 +47,7 @@ export class StoreController {
 
   /*
    * Searches for stores within `distance` meters of coords (`lat`,`lon`),
-   * with a name that matches `name_prefix` if provided
+   * with a name that matches `product_id` if provided
    */
   @Get('/search')
   @ApiOkResponse({

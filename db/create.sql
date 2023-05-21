@@ -384,7 +384,7 @@ BEGIN ATOMIC
     WHERE store_id IN (
         SELECT productatstore_store_id
         FROM :env.productatstore
-        WHERE productatstore_product_id = product_id;
+        WHERE productatstore_product_id = product_id
     );
 END;
 
