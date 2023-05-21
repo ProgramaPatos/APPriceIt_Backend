@@ -83,6 +83,13 @@ export class userService {
         await bcrypt.hash(updateUser.appuser_password,12),
       ]);
     }
-    
+  }
+
+  async updateUserState(id: number, state: boolean) {
+    //TODO:Validate data 
+    await this.pgdb.proc('fun.update_user_state', [
+      id,
+      state
+    ]);
   }
 }

@@ -65,4 +65,9 @@ export class ProductService {
         }
 
     }
+    async deleteProduct(product_id: number) {
+        await this.pgdb.proc("fun.delete_product", [
+            product_id
+        ])
+    }
 }

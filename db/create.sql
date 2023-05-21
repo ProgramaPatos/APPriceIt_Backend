@@ -90,7 +90,7 @@ CREATE TABLE :env.price (
        price_value NUMERIC(10,2) NOT NULL,
        price_creation_time timestamp NOT NULL,
        price_appuser_id INT NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
-       price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE
+       price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 ALTER TABLE :env.price ALTER COLUMN price_creation_time SET DEFAULT NOW();
 
@@ -101,7 +101,7 @@ CREATE TABLE :env.pricereview (
        pricereview_modification_time timestamp NOT NULL,
        pricereview_comment TEXT,
        pricereview_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
-       pricereview_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE
+       pricereview_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 ALTER TABLE :env.pricereview ALTER COLUMN pricereview_creation_time SET DEFAULT NOW();
@@ -712,3 +712,30 @@ BEGIN ATOMIC
     WHERE appuser_id = id;
 END;
 
+CREATE OR REPLACE PROCEDURE fun.delete_product(
+    id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    /*DELETE FROM producttag WHERE producttag_product_id = id;
+    DELETE FROM pricereview WHERE pricereview_price_id IN 
+    (SELECT price_id FROM price WHERE price_productatstore_id IN 
+    (SELECT productatstore_id FROM productatstore WHERE productatstore_product_id = id)) ;
+    DELETE FROM price WHERE price_productatstore_id IN 
+    (SELECT productatstore_id FROM productatstore WHERE productatstore_product_id = id);
+    DELETE FROM productatstore WHERE productatstore_product_id = id;*/
+    DELETE FROM :env.product WHERE product_id = id; 
+END;
+
+CREATE OR REPLACE PROCEDURE fun.update_user_state(
+       id INT,
+       st boolean
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    UPDATE :env.appuser
+    SET appuser_state = st
+    WHERE appuser_id = id;
+END;
