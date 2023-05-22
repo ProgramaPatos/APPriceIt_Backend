@@ -50,9 +50,9 @@ export class StoreService {
     const { lat, lon, distance } = query;
     let res: StoreResponseDTO[];
 
-    if (query.product) {
+    if (query.product_id) {
       res = await this.pgdb.func('fun.stores_with_product_within_distance', [
-        query.product,
+        query.product_id,
         lat,
         lon,
         distance + 0.1
@@ -70,7 +70,7 @@ export class StoreService {
       throw new NotFoundException(
 
         `No store within ${distance} meters from (${lat},${lon})` +
-        (product_id ? ` with product "${product_id}""` : ''),
+        (query.product_id ? ` with product "${query.product_id}""` : ''),
 
       );
     }

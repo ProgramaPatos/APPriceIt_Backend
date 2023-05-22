@@ -5,7 +5,7 @@ import { Public } from '../../public.decorator';
 import SignInResponseDTO from 'src/auth/dtos/signin-response.dto';
 import RefreshRequestDTO from 'src/auth/dtos/refresh-request.dto';
 import SignInRequestDTO from 'src/auth/dtos/signin-request.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiNoContentResponse } from '@nestjs/swagger';
 import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
 /*import { Roles } from './roles.decorator';
 import { Role } from './role.enum';
@@ -28,6 +28,9 @@ export class AuthController {
         return this.authService.signIn(signInRequest);
     }
 
+    @ApiNoContentResponse({
+        description: 'Logged out successfully.',
+    })
     @Put('logout')
     logOut(@Request() req) {
         this.authService.logOut(req.user.userId);

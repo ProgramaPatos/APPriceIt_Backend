@@ -116,11 +116,11 @@ export class StoreController {
   @ApiNotFoundResponse({ description: 'The store does not exist.' })
   @Put(':storeId')
   @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
-  updateStore(
+  async updateStore(
     @Param('storeId', ParseIntPipe) storeId: number,
     @Body() payload: StoreUpdateDTO,
-  ): void {
-    this.storeService.updateStore(storeId, payload);
+  ) {
+    await this.storeService.updateStore(storeId, payload);
   }
 
   // TODO: add delete method

@@ -366,7 +366,7 @@ BEGIN ATOMIC
       FROM :env.product p
       INNER JOIN :env.productatstore pats ON productatstore_product_id = product_id
       INNER JOIN :env.store ON productatstore_store_id = store_id
-      WHERE ST_DWithin(ST_Transform(ST_Point(lon,lat,4326),21897),store_location_21897,dist)
+      WHERE ST_DWithin(ST_Transform(ST_Point(lon,lat,4326),21897),store_location_21897,radius)
       AND product_id = prod_id;
 END;
 
@@ -624,14 +624,24 @@ BEGIN ATOMIC
     DELETE FROM :env.product WHERE product_id = id; 
 END;
 
-CREATE OR REPLACE PROCEDURE fun.update_user_state(
+CREATE OR REPLACE FUNCTION fun.update_user_state(
        id INT,
        st boolean
 )
-LANGUAGE SQL
-SECURITY DEFINER
-BEGIN ATOMIC
-    UPDATE :env.appuser
-    SET appuser_state = st
-    WHERE appuser_id = id;
-END;
+RETURNS INTEGER AS
+$$
+    DECLARE user int;
+    BEGIN
+    SELECT appuser_id INTO user FROM dev.appuser WHERE appuser_id = id;
+    IF NOT FOUND THEN --user doesn't exist
+        RETURN -1;
+    ELSE
+        UPDATE dev.appuser
+        SET appuser_state = st
+        WHERE appuser_id = id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
