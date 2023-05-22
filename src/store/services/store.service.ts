@@ -8,7 +8,6 @@ import {
 import { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import StoreCreateDTO from '../dtos/store-create.dto';
-import StoreProductsQueryDTO from '../dtos/store-products-query.dto';
 import StoreQueryDTO from '../dtos/store-query.dto';
 import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
@@ -46,22 +45,21 @@ export class StoreService {
     ]);
   }
 
-  async searchStores({
-    lat,
-    lon,
-    distance,
-    product_id,
-  }: StoreQueryDTO): Promise<StoreResponseDTO[]> {
+
+  async searchStores(query: StoreQueryDTO): Promise<StoreResponseDTO[]> {
+    const { lat, lon, distance } = query;
     let res: StoreResponseDTO[];
-    if (product_id) {
-      res = await this.pgdb.func('fun.get_stores_within_distance_and_product', [
+
+    if (query.product) {
+      res = await this.pgdb.func('fun.stores_with_product_within_distance', [
+        query.product,
         lat,
         lon,
-        distance,
-        product_id,
+        distance + 0.1
       ]);
-    } else {
-      res = await this.pgdb.func('fun.get_stores_within_distance', [
+    }
+    else {
+      res = await this.pgdb.func('fun.stores_within_distance', [
         lat,
         lon,
         distance,
@@ -70,8 +68,10 @@ export class StoreService {
 
     if (res.length === 0) {
       throw new NotFoundException(
+
         `No store within ${distance} meters from (${lat},${lon})` +
         (product_id ? ` with product "${product_id}""` : ''),
+
       );
     }
     return res;
@@ -99,15 +99,9 @@ export class StoreService {
     }
   }
 
-  async getStoreProducts(store_id: number, { withPrices }: StoreProductsQueryDTO) {
+  async storeProducts(store_id: number) {
     let res;
-    if (withPrices) {
-      res = (await this.pgdb.func("fun.get_store_products_with_prices", [store_id]))
-
-    }
-    else {
-      res = (await this.pgdb.func("fun.get_store_products", [store_id]));
-    }
+    res = (await this.pgdb.func("fun.store_products", [store_id]));
     if (res.length == 0) {
       throw new NotFoundException(`Store with id ${store_id} has no registered products`);
     }

@@ -25,7 +25,6 @@ import {
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
 import ProductWithPricesResponseDTO from 'src/product/dto/product-with-prices-response.dto';
 import StoreCreateDTO from '../dtos/store-create.dto';
-import StoreProductsQueryDTO from '../dtos/store-products-query.dto';
 import StoreQueryDTO from '../dtos/store-query.dto';
 import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
@@ -86,18 +85,14 @@ export class StoreController {
    */
   @Get(':storeId/products')
   @ApiTags("product")
-  @ApiQuery({
-    type: StoreProductsQueryDTO
-  })
   @ApiExtraModels(ProductWithPricesResponseDTO)
   @ApiOkResponse({
     description: 'One or more products found for store.',
-    schema: { oneOf: refs(ProductResponseDTO, ProductWithPricesResponseDTO) },
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
-  getStoreProducts<W extends StoreProductsQueryDTO>(@Param("storeId", ParseIntPipe) storeId: number, @Query() storeProductsQuery: W): Promise<ProductResponse<W['withPrices']>[]> {
-    return this.storeService.getStoreProducts(storeId, storeProductsQuery);
+  getStoreProducts(@Param("storeId", ParseIntPipe) storeId: number): Promise<ProductWithPricesResponseDTO[]> {
+    return this.storeService.storeProducts(storeId);
   }
   /*
    * Creates a new store

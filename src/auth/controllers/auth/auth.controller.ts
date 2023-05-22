@@ -29,7 +29,7 @@ export class AuthController {
     }
 
     @Put('logout')
-    logOut(@Request() req){
+    logOut(@Request() req) {
         this.authService.logOut(req.user.userId);
 
     }
@@ -37,6 +37,7 @@ export class AuthController {
     /*
      * Endpoint to get a new access token fron an access one.
      */
+    @Public()
     @Post('refresh')
     async refresh(@Body() refreshToken: RefreshRequestDTO) {
         console.log(refreshToken);
@@ -47,7 +48,7 @@ export class AuthController {
     /*
      * Test endpoint. TODO: Remove
      */
-    @UseGuards(AuthGuard,ACGuard)
+    @UseGuards(AuthGuard, ACGuard)
     @UseRoles({
         possession: 'any',
         action: 'read',

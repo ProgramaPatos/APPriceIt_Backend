@@ -6,7 +6,6 @@ import UserCreateDTO from '../dtos/user-create.dto';
 import UserUpdateDTO from '../dtos/user-update.dto';
 import * as bcrypt from 'bcrypt';
 
-export type User = any;
 
 @Injectable()
 export class userService {
@@ -59,10 +58,10 @@ export class userService {
   }
   //TODO: Add refresh token to user and email verification
   async createUser(newUser: UserCreateDTO) {
-    console.log(await bcrypt.hash(newUser.appuser_password,12));
+    console.log(await bcrypt.hash(newUser.appuser_password, 12));
     await this.pgdb.proc('fun.create_user', [
       newUser.appuser_name,
-      await bcrypt.hash(newUser.appuser_password,12),
+      await bcrypt.hash(newUser.appuser_password, 12),
       newUser.appuser_email,
       null
     ]);
@@ -70,19 +69,20 @@ export class userService {
 
   async updateUserInfo(id: number, updateUser: UserUpdateDTO) {
     //TODO:Validate data
-    if(updateUser.appuser_name != null){
+    if (updateUser.appuser_name != null) {
       await this.pgdb.proc('fun.update_user_name', [
         id,
         updateUser.appuser_name
       ]);
 
     }
-    if(updateUser.appuser_password != null) {
+    if (updateUser.appuser_password != null) {
       await this.pgdb.proc('fun.update_user_password', [
         id,
-        await bcrypt.hash(updateUser.appuser_password,12),
+        await bcrypt.hash(updateUser.appuser_password, 12),
       ]);
     }
+
   }
 
   async updateUserState(id: number, state: boolean) {

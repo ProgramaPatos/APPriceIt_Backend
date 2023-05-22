@@ -13,7 +13,6 @@ INSERT INTO :env.appuser (
 VALUES ('Admin','$2b$12$HVcZcyTkU9q.MkRCPlmQsOx29LrHnjuytQPa.aWB2oHwU7GODgFEi',TRUE, NOW(), 'admin1@gmail.com', 'Admin');
 /*password: secretos*/
 
-CALL fun.assign_role('Admin', 4);
 
 CAll fun.create_product(1,'Yogurt','Yogurt de fresa :v');
 
@@ -22,20 +21,21 @@ CAll fun.assign_product_to_store(1,2,7740,17);
 CAll fun.assign_product_to_store(1,4,8009,17);
 CAll fun.assign_product_to_store(1,2,8009,17);
 
-ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL DEFAULT 0;
-ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL DEFAULT 0;
+ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL UNIQUE;
+ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL UNIQUE;
+
 
 INSERT INTO :env.store (
        store_temp_id,
        store_name,
-       store_location,
+       store_location_21897,
        store_creation_time,
        store_appuser_id
        )
        SELECT
        store_staging_id,
        COALESCE(store_staging_name,'store name missing'),
-       ST_TRANSFORM(store_staging_geom, 4326),
+       store_staging_geom,
        NOW(),
        (SELECT appuser_id FROM dev.appuser)
        FROM staging.store_staging;

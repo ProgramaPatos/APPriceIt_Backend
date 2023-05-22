@@ -1,4 +1,5 @@
 import {
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -42,4 +43,5 @@ export default class StoreQueryDTO {
   @IsNotEmpty()
   @Min(0)
   readonly product_id: number;
+
 }

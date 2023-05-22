@@ -104,7 +104,7 @@ if (productatstore.length == 0) {
   //   ` INSERT INTO ${env}.productatstore
   //   (productatstore_availability, productatstore_product_id, productatstore_store_id, productatstore_appuser_id)
   //   VALUES ${createValues(productAtStoresAssignment)}`;
-  pgdb.none(query);
+  await pgdb.none(query);
 
 
   productatstore = await pgdb.any(`SELECT * FROM ${env}.productatstore`);
@@ -141,7 +141,7 @@ if (prices.length == 0) {
     ],
     { table: `price`, schema: `${env}` }
   );
-  pgdb.none(query);
+  await pgdb.none(query);
   prices = await pgdb.any(`SELECT * FROM ${env}.price`);
 }
 pgdb.$pool.end();
