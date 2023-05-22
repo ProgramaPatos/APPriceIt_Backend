@@ -45,6 +45,7 @@ export class StoreService {
     ]);
   }
 
+
   async searchStores(query: StoreQueryDTO): Promise<StoreResponseDTO[]> {
     const { lat, lon, distance } = query;
     let res: StoreResponseDTO[];
@@ -67,7 +68,10 @@ export class StoreService {
 
     if (res.length === 0) {
       throw new NotFoundException(
-        `No store within ${distance} meters of (${lat},${lon})`
+
+        `No store within ${distance} meters from (${lat},${lon})` +
+        (product_id ? ` with product "${product_id}""` : ''),
+
       );
     }
     return res;

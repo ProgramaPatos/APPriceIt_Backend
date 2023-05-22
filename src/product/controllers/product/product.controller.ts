@@ -1,11 +1,11 @@
-import { Controller, Get, ParseIntPipe, Param, Put, HttpCode, Body, HttpStatus, Post, SetMetadata, Query } from '@nestjs/common';
+import { Controller, Get, Delete, UseGuards, ParseIntPipe, Request, Param, Put, HttpCode, Body, HttpStatus, Post, SetMetadata, Query } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiUnprocessableEntityResponse, ApiOkResponse, ApiNoContentResponse, ApiForbiddenResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import ProductCreateDTO from 'src/product/dto/product-create.dto';
 import { ProductQueryDTO } from 'src/product/dto/product-query.dto';
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
 import { ProductUpdateDTO } from 'src/product/dto/product-update.dto';
 import { ProductService } from 'src/product/services/product/product.service';
-
+import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
 
 
 @ApiBearerAuth()
@@ -75,5 +75,22 @@ export class ProductController {
     ): void {
         this.productService.updateProduct(productId, payload);
     }
-
+    
+    /*
+     * Delete a product
+     */
+    @Delete(':productId')
+    @UseGuards(ACGuard)
+    @UseRoles({
+        possession: 'any',
+        action: 'delete',
+        resource: 'product'
+    })
+    @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
+    @ApiNoContentResponse({
+        description: 'The product has been successfully deleted.',
+    })
+    deleteProduct(@Param('productId', ParseIntPipe) productId: number,@Request() req): void {
+        this.productService.deleteProduct(productId);
+    }
 }

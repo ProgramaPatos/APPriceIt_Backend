@@ -84,4 +84,12 @@ export class userService {
     }
 
   }
+
+  async updateUserState(id: number, state: boolean) {
+    //TODO:Validate data 
+    await this.pgdb.proc('fun.update_user_state', [
+      id,
+      state
+    ]);
+  }
 }
