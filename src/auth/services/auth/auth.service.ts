@@ -40,7 +40,9 @@ export class AuthService {
             const payload = plainToInstance(TokenPayloadDTO, payloadRaw, { excludeExtraneousValues: true });
 
             await validate(payload);
-            if (await this.usersService.getRefreshToken(payload.userEmail) !== refreshToken) {
+            const userToken = await this.usersService.getRefreshToken(payload.userEmail);
+            console.log(`comparing\n input token: ${refreshToken} \n stored token: ${userToken}`);
+            if (userToken !== refreshToken) {
                 throw new Error('Invalid token');
             }
             return {
@@ -51,7 +53,7 @@ export class AuthService {
         }
     }
 
-    async logOut(id: number){
+    async logOut(id: number) {
         await this.usersService.updateRefreshToken(id, "");
 
     }

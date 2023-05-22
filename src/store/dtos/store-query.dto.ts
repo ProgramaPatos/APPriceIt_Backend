@@ -1,4 +1,5 @@
 import {
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -37,8 +38,8 @@ export default class StoreQueryDTO {
   /*
    * @example B
    */
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
   @IsOptional()
-  readonly name_prefix?: string;
+  readonly product?: number;
 }
