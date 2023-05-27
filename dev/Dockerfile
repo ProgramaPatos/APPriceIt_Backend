@@ -33,11 +33,6 @@ RUN make &&\
 
 ENTRYPOINT ["sh"]
 
-FROM node:18.15-alpine3.17 as node_prebuild
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-
 FROM node:18.15-alpine3.17 as development
 ARG OSM2PGSQL_RUNTIME_DEPENDENCIES
 RUN apk add --no-cache bash postgresql-client ${OSM2PGSQL_RUNTIME_DEPENDENCIES}
@@ -47,9 +42,10 @@ COPY --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.
 RUN mv /tmp/osm2pgsql /usr/local/bin/
 WORKDIR /app
 
-COPY --from=node_prebuild /app ./
+COPY package.json package-lock.json* ./
+RUN npm install --no-optional && npm cache clean --force
 COPY . .
-RUN npm install && npm run build
+RUN npm run build
 
 # ENTRYPOINT [ "sh" ]
 CMD ["npm","run","start:dev"]

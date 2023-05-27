@@ -16,8 +16,8 @@ services:
     networks:
       - appriceit-network
     volumes:
-      - .:/app
       - /app/node_modules
+      - .:/app
     links:
       - "db:${DB_HOST}"
     restart: unless-stopped
