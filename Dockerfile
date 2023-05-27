@@ -1,3 +1,8 @@
+FROM node:18.15-alpine3.17 as node_prebuild
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
 FROM node:18.15-alpine3.17 as production
 WORKDIR /app
 
