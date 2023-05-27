@@ -14,8 +14,16 @@ VALUES ('Admin','$2b$12$HVcZcyTkU9q.MkRCPlmQsOx29LrHnjuytQPa.aWB2oHwU7GODgFEi',T
 /*password: secretos*/
 
 
+CAll fun.create_product(1,'Yogurt','Yogurt de fresa :v');
+
+CAll fun.assign_product_to_store(1,5,7740,17);
+CAll fun.assign_product_to_store(1,2,7740,17);
+CAll fun.assign_product_to_store(1,4,8009,17);
+CAll fun.assign_product_to_store(1,2,8009,17);
+
 ALTER TABLE :env.store ADD COLUMN store_temp_id INT NOT NULL UNIQUE;
 ALTER TABLE :env.tag ADD COLUMN tag_temp_id INT NOT NULL UNIQUE;
+
 
 INSERT INTO :env.store (
        store_temp_id,

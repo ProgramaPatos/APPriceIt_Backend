@@ -46,7 +46,7 @@ export class StoreController {
 
   /*
    * Searches for stores within `distance` meters of coords (`lat`,`lon`),
-   * with a name that matches `name_prefix` if provided
+   * with a name that matches `product_id` if provided
    */
   @Get('/search')
   @ApiOkResponse({
@@ -116,11 +116,11 @@ export class StoreController {
   @ApiNotFoundResponse({ description: 'The store does not exist.' })
   @Put(':storeId')
   @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
-  updateStore(
+  async updateStore(
     @Param('storeId', ParseIntPipe) storeId: number,
     @Body() payload: StoreUpdateDTO,
-  ): void {
-    this.storeService.updateStore(storeId, payload);
+  ) {
+    await this.storeService.updateStore(storeId, payload);
   }
 
   // TODO: add delete method

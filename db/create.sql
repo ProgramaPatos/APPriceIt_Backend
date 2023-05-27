@@ -21,7 +21,8 @@ CREATE TABLE :env.appuser (
        appuser_refresh_token VARCHAR(256) NULL,
        appuser_role role DEFAULT 'User'
 );
-
+CREATE INDEX appuser_id_idx ON :env.appuser (appuser_id);
+CREATE INDEX appuser_email_idx ON :env.appuser (appuser_email);
 
 /*
 CREATE TABLE :env.appuserrole (
@@ -42,6 +43,8 @@ CREATE TABLE :env.store (
 );
 CREATE INDEX store_location_idx ON :env.store USING GIST ( store_location_21897 );
 ALTER TABLE :env.store ALTER COLUMN store_creation_time SET DEFAULT NOW();
+CREATE INDEX store_id_idx ON :env.store (store_id);
+CREATE INDEX store_name_idx ON :env.store (store_name);
 
 CREATE TABLE :env.tag (
        tag_id SERIAL NOT NULL PRIMARY KEY,
@@ -67,7 +70,8 @@ CREATE TABLE :env.product (
 );
 ALTER TABLE :env.product ALTER COLUMN product_creation_time SET DEFAULT NOW();
 
-
+CREATE INDEX product_id_idx ON :env.product(product_id);
+CREATE INDEX product_name_idx ON :env.product(product_name);
 
 CREATE TABLE :env.productatstore (
        productatstore_id SERIAL NOT NULL PRIMARY KEY,
@@ -77,8 +81,11 @@ CREATE TABLE :env.productatstore (
        productatstore_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
        productatstore_product_id int NOT NULL REFERENCES :env.product (product_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+CREATE INDEX productatstore_appuser_id_idx ON :env.productatstore (productatstore_appuser_id);
 CREATE INDEX productatstore_store_product_idx ON :env.productatstore (productatstore_store_id,productatstore_product_id);
 CREATE INDEX productatstore_product_store_idx ON :env.productatstore (productatstore_product_id,productatstore_store_id);
+
 
 
 CREATE TABLE :env.price (
@@ -86,7 +93,7 @@ CREATE TABLE :env.price (
        price_value NUMERIC(10,2) NOT NULL,
        price_creation_time timestamp NOT NULL,
        price_appuser_id INT NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
-       price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE
+       price_productatstore_id INT NOT NULL REFERENCES :env.productatstore (productatstore_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 ALTER TABLE :env.price ALTER COLUMN price_creation_time SET DEFAULT NOW();
 
@@ -97,7 +104,7 @@ CREATE TABLE :env.pricereview (
        pricereview_modification_time timestamp NOT NULL,
        pricereview_comment TEXT,
        pricereview_appuser_id int NOT NULL REFERENCES :env.appuser (appuser_id) ON UPDATE CASCADE,
-       pricereview_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE
+       pricereview_price_id int NOT NULL REFERENCES :env.price (price_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 ALTER TABLE :env.pricereview ALTER COLUMN pricereview_creation_time SET DEFAULT NOW();
@@ -325,6 +332,7 @@ BEGIN ATOMIC
     WHERE ST_DWithin(ST_Transform(ST_Point(lon,lat,4326),21897),store_location_21897,dist);
 END;
 
+
 CREATE OR REPLACE FUNCTION fun.stores_with_product_within_distance(
        prod_id INT,
        lat double precision,
@@ -358,7 +366,7 @@ BEGIN ATOMIC
       FROM :env.product p
       INNER JOIN :env.productatstore pats ON productatstore_product_id = product_id
       INNER JOIN :env.store ON productatstore_store_id = store_id
-      WHERE ST_DWithin(ST_Transform(ST_Point(lon,lat,4326),21897),store_location_21897,dist)
+      WHERE ST_DWithin(ST_Transform(ST_Point(lon,lat,4326),21897),store_location_21897,radius)
       AND product_id = prod_id;
 END;
 
@@ -600,3 +608,40 @@ BEGIN ATOMIC
     WHERE appuser_id = id;
 END;
 
+CREATE OR REPLACE PROCEDURE fun.delete_product(
+    id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    /*DELETE FROM producttag WHERE producttag_product_id = id;
+    DELETE FROM pricereview WHERE pricereview_price_id IN 
+    (SELECT price_id FROM price WHERE price_productatstore_id IN 
+    (SELECT productatstore_id FROM productatstore WHERE productatstore_product_id = id)) ;
+    DELETE FROM price WHERE price_productatstore_id IN 
+    (SELECT productatstore_id FROM productatstore WHERE productatstore_product_id = id);
+    DELETE FROM productatstore WHERE productatstore_product_id = id;*/
+    DELETE FROM :env.product WHERE product_id = id; 
+END;
+
+CREATE OR REPLACE FUNCTION fun.update_user_state(
+       id INT,
+       st boolean
+)
+RETURNS INTEGER AS
+$$
+    DECLARE user int;
+    BEGIN
+    SELECT appuser_id INTO user FROM dev.appuser WHERE appuser_id = id;
+    IF NOT FOUND THEN --user doesn't exist
+        RETURN -1;
+    ELSE
+        UPDATE dev.appuser
+        SET appuser_state = st
+        WHERE appuser_id = id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
