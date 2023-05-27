@@ -36,12 +36,11 @@ export default class StoreQueryDTO {
   readonly distance: number;
 
   /*
-   * @example 0
+   * @example 3
    */
-  // Put 0 as a default value to avoid having to check if it's undefined
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
-  readonly product_id: number;
+  @IsOptional()
+  readonly product_id?: number;
 
 }
