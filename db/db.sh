@@ -190,20 +190,20 @@ function db_exists {
 
 case $COMMAND in
     create)
-        # Check if the database already exists
-        if db_exists "$DATABASE"; then
-            logt "Database already exists"
-            # Check if the schema exists
-        else
-            # Create the database
-            logt "Database does not exists"
-            logt "Creating database"
-            psqlnpdo --command="CREATE DATABASE $DATABASE"
-            logt "Database created"
-            logt "Enabling postgis"
-            psqldo --command="CREATE EXTENSION postgis"
-            logt "Postgis disabled"
-        fi
+        ## Check if the database already exists
+        # if db_exists "$DATABASE"; then
+        #     logt "Database already exists"
+        #     # Check if the schema exists
+        # else
+        ## Create the database
+        # logt "Database does not exists"
+        # logt "Creating database"
+        # psqlnpdo --command="CREATE DATABASE $DATABASE"
+        # logt "Database created"
+        logt "Enabling postgis"
+        psqldo --command="CREATE EXTENSION postgis"
+        logt "Postgis enabled"
+        # fi
 
         psqldo \
             -f create.sql \

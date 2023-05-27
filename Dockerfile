@@ -54,13 +54,3 @@ RUN npm install && npm run build
 # ENTRYPOINT [ "sh" ]
 CMD ["npm","run","start:dev"]
 
-FROM postgis/postgis:15-3.3-alpine as database
-
-# ARG OSM2PGSQL_RUNTIME_DEPENDENCIES
-# RUN apk add --no-cache ${OSM2PGSQL_RUNTIME_DEPENDENCIES}
-# RUN mkdir /usr/local/share/osm2pgsql
-# COPY --from=build_osm2pgsql /src/osm2pgsql/build/osm2pgsql /src/osm2pgsql/empty.style /src/osm2pgsql/default.style /tmp/
-
-# RUN mv /tmp/osm2pgsql /usr/local/bin/
-
-# mv /tmp/empty.style /tmp/default.style

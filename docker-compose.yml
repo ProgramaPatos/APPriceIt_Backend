@@ -30,7 +30,7 @@ services:
     build:
       context: .
       target: database
-      dockerfile: ./Dockerfile
+      dockerfile: ./db/Dockerfile
     environment:
       POSTGRES_PASSWORD: example
     ports:
