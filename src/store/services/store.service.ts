@@ -48,7 +48,6 @@ export class StoreService {
   async searchStores(query: StoreQueryDTO): Promise<StoreResponseDTO[]> {
     const { lat, lon, distance } = query;
     let res: StoreResponseDTO[];
-
     if (query.product) {
       res = await this.pgdb.func('fun.stores_with_product_within_distance', [
         query.product,

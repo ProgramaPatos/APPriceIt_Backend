@@ -20,7 +20,8 @@ export class ProductController {
     @Get('/search')
     @ApiOkResponse({
         description: 'The products that match `name` are returned',
-        type: ProductResponseDTO
+        type: ProductResponseDTO,
+        isArray: true
     })
     @ApiNotFoundResponse({
         description: 'No product matches `name`'

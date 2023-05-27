@@ -4,9 +4,10 @@ import PriceResponseDto from "./price.dto";
 import ProductResponseDTO from "./product-response.dto";
 
 export default class ProductWithPricesResponseDTO extends ProductResponseDTO {
+
     @IsObject()
     @Type(() => PriceResponseDto)
     @IsArray()
     @ValidateNested()
-    readonly prices: PriceResponseDto[];
+    readonly product_prices: PriceResponseDto[];
 }

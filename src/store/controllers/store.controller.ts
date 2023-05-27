@@ -85,9 +85,9 @@ export class StoreController {
    */
   @Get(':storeId/products')
   @ApiTags("product")
-  @ApiExtraModels(ProductWithPricesResponseDTO)
   @ApiOkResponse({
     description: 'One or more products found for store.',
+    type: ProductWithPricesResponseDTO,
     isArray: true,
   })
   @ApiNotFoundResponse({ description: 'No store found.' })
