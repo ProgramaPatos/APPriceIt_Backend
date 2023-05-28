@@ -5,7 +5,7 @@ import UserCreateDTO from 'src/user/dtos/user-create.dto';
 import { userService } from 'src/user/services/user.service';
 import { ApiNoContentResponse, ApiNotFoundResponse, ApiUnprocessableEntityResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import UserUpdateDTO from 'src/user/dtos/user-update.dto';
-import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
+import { ACGuard, UseRoles } from 'nest-access-control';
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -66,5 +66,26 @@ export class UserController {
     async updateState(@Param('userId', ParseIntPipe) userId: number, @Param('state', ParseBoolPipe)state: boolean) {
         //check authorization
         await this.userService.updateUserState(userId, state);
+    }
+
+
+    @Get('store/mine')
+    async getMyStores(@Request() req){
+        return this.userService.getMyStores(req.user.userId);
+    }
+
+    @Get('product/mine')
+    async getMyProducts(@Request() req){
+        return this.userService.getMyProducts(req.user.userId);
+    }
+
+    @Get('price/mine')
+    async getMyPrices(@Request() req){
+        return this.userService.getMyPrices(req.user.userId);
+    }
+
+    @Get('store/product/mine')
+    async getMyProductsAtStore(@Request() req){
+        return this.userService.getMyProductsAtStore(req.user.userId);
     }
 }

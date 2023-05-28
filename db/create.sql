@@ -269,7 +269,7 @@ LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
       INSERT INTO :env.store (store_name,store_location_21897,store_appuser_id,store_description,store_schedule,store_creation_time)
-      VALUES (n,ST_Point(lon,lat,4326),user_id,description,schedule,NOW());
+      VALUES (n,ST_Transform(ST_Point(lon,lat,4326),21897),user_id,description,schedule,NOW());
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_store(
@@ -527,7 +527,7 @@ CREATE OR REPLACE PROCEDURE fun.assign_product_to_store(
     user_id INT,
     id_product INT,
     id_store INT,
-    availability INT = NULL
+    availability INT = 0
 )
 LANGUAGE SQL
 SECURITY DEFINER
@@ -645,3 +645,208 @@ $$
 $$
 LANGUAGE plpgsql
 SECURITY DEFINER;
+
+
+CREATE OR REPLACE FUNCTION fun.delete_store(
+    id int,
+    user_id int
+)
+RETURNS INTEGER AS
+$$
+    DECLARE store_creator int;
+    DECLARE appuser_current_role role;
+    BEGIN
+    SELECT store_appuser_id INTO store_creator FROM dev.store WHERE store_id = id;
+    SELECT appuser_role INTO appuser_current_role FROM dev.appuser WHERE appuser_id = user_id;
+    IF NOT FOUND THEN -- Store doesn't exist
+       RETURN -1;
+    ELSEIF store_creator <> user_id AND appuser_current_role <> 'Admin' THEN -- Store exists but user isn't creator
+        RETURN -2;
+    ELSE -- Store exists and user is creator so the store is deleted
+        DELETE FROM dev.store WHERE store_id = id;
+        RETURN 0;
+    END IF;
+    END;
+$$
+LANGUAGE plpgsql
+SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION fun.update_price(
+    user_id int,
+    id_product INT,
+    id_store INT,
+    val numeric(10,2)
+)
+RETURNS INT AS
+$$
+DECLARE
+    productatstore_found_id int;
+    price_found_id int;
+BEGIN
+    SELECT productatstore_id INTO productatstore_found_id
+    FROM dev.productatstore
+    WHERE productatstore_store_id = id_store
+    AND productatstore_product_id = id_product;
+    IF NOT FOUND THEN -- productatstore not found
+       RETURN -1;
+    ELSE
+        SELECT price_id INTO price_found_id
+        FROM dev.price
+        WHERE price_productatstore_id = productatstore_found_id;
+        IF NOT FOUND THEN -- not previous price info
+            RETURN -2; 
+        ELSE
+            UPDATE dev.price
+            SET price_value = val,
+                price_creation_time = NOW(),
+                price_appuser_id = user_id
+            WHERE price_productatstore_id = productatstore_found_id;
+            RETURN 0;
+        END IF;
+    END IF;
+END;
+$$
+SECURITY DEFINER
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fun.delete_price(
+    user_id int,
+    id_product INT,
+    id_store INT,
+    id_price INT
+)
+RETURNS INT AS
+$$
+DECLARE
+    productatstore_found_id int;
+    price_creator_id int;
+    role_current_user role;
+BEGIN
+
+    SELECT price_appuser_id INTO price_creator_id
+    FROM dev.price
+    WHERE price_id = id_price;
+    IF NOT FOUND THEN
+       RETURN -1;
+    END IF;
+    
+    SELECT appuser_role INTO role_current_user
+    FROM dev.appuser
+    WHERE appuser_id = user_id;
+
+    SELECT productatstore_id INTO productatstore_found_id
+    FROM dev.productatstore
+    WHERE productatstore_store_id = id_store
+    AND productatstore_product_id = id_product;
+    IF NOT FOUND THEN
+       RETURN -1;
+    ELSEIF price_creator_id <> user_id AND role_current_user = 'User' THEN
+        RETURN -2;
+    ELSE
+        DELETE FROM dev.price
+        WHERE price_id = id_price;
+        RETURN 0;
+    END IF;
+END;
+$$
+SECURITY DEFINER
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION fun.get_user_stores(
+       id int
+       )
+RETURNS TABLE (
+        store_id int,
+        store_name varchar,
+        store_location jsonb,
+        store_description text,
+        store_schedule tstzrange,
+        store_creation_time timestamp,
+        store_appuser_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    store_id,
+    store_name,
+    ST_AsGeoJSON(store_location_4326)::jsonb,
+    store_description,
+    store_schedule,
+    store_creation_time,
+    store_appuser_id
+    FROM :env.store
+    WHERE store_appuser_id = id;
+END;
+
+CREATE OR REPLACE FUNCTION fun.get_user_products(
+       id int
+       )
+RETURNS TABLE (
+       product_id int, 
+       product_name varchar,
+       product_description text,
+       product_creation_time timestamp,
+       product_appuser_id int
+
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    product_id, 
+    product_name,
+    product_description,
+    product_creation_time,
+    product_appuser_id
+    FROM :env.product
+    WHERE product_appuser_id = id;
+END;
+
+CREATE OR REPLACE FUNCTION fun.get_user_prices(
+       id int
+       )
+RETURNS TABLE (
+       price_id int, 
+       price_value numeric,
+       price_creation_time timestamp,
+       price_appuser_id int,
+       price_productatstore_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    price_id, 
+    price_value,
+    price_creation_time,
+    price_appuser_id,
+    price_productatstore_id
+    FROM :env.price
+    WHERE price_appuser_id = id;
+END;
+
+CREATE OR REPLACE FUNCTION fun.get_user_productsatstore(
+       id int
+       )
+RETURNS TABLE (
+       productatstore_id int, 
+       productatstore_availability int,
+       productatstore_store_id int,
+       productatstore_appuser_id int,
+       productatstore_product_id int
+)
+LANGUAGE SQL
+SECURITY DEFINER
+BEGIN ATOMIC
+    SELECT
+    productatstore_id, 
+    productatstore_availability,
+    productatstore_store_id,
+    productatstore_appuser_id,
+    productatstore_product_id
+    FROM :env.productatstore
+    WHERE productatstore_appuser_id = id;
+END;
+

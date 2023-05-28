@@ -112,4 +112,45 @@ export class userService {
       throw new NotFoundException(`User with id "${id}" does not exist`);
     }
   }
+
+  async getMyStores(id:number){
+    const res = await this.pgdb.func("fun.get_user_stores",[
+      id
+    ]);
+    if(res.length == 0){
+      throw new NotFoundException(`User with id "${id}" does not have stores`);
+    }
+    return res;
+  }
+
+  async getMyProducts(id:number){
+    const res = await this.pgdb.func("fun.get_user_products", [
+      id
+    ]);
+    if(res.length == 0){
+      throw new NotFoundException(`User with id "${id}" does not have products`);
+    }
+    return res;
+  }
+
+  async getMyPrices(id:number){
+    const res = await this.pgdb.func("fun.get_user_prices", [
+      id
+    ]);
+    if(res.length == 0){
+      throw new NotFoundException(`User with id "${id}" does not have prices`);
+    }
+    return res;
+  }
+
+  async getMyProductsAtStore(id:number){
+    const res =  await this.pgdb.func("fun.get_user_productsatstore", [
+      id
+    ]);
+    if(res.length == 0){
+      throw new NotFoundException(`User with id "${id}" does not have products at stores`);
+    }
+    return res;
+  }
+
 }

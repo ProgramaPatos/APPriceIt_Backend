@@ -9,6 +9,9 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
+  Delete,
+  Request,
 } from '@nestjs/common';
 import {
   ApiExtraModels,
@@ -30,6 +33,10 @@ import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
 import { StoreService } from '../services/store.service';
 import { Public } from 'src/auth/public.decorator';
+import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
+import StoreAssignProductDTO from '../dtos/store-assign-product.dto';
+import StoreAssignPriceDTO from '../dtos/store-assign-price.dto';
+
 
 
 type ProductResponse<WithPrice extends boolean> = WithPrice extends true ? ProductWithPricesResponseDTO : ProductResponseDTO;
@@ -124,4 +131,52 @@ export class StoreController {
   }
 
   // TODO: add delete method
+  @ApiNoContentResponse({
+    description: 'The store has been successfully deleted.',
+  })
+  @Delete(':storeId')
+  async deleteStore(@Param('storeId', ParseIntPipe) storeId: number,@Request() req){
+    await this.storeService.deleteStore(storeId,req.user.userId);
+  }
+
+  /*
+   * Assign a product with id `productId` to the store with id `storeId`
+   */
+  @Post(':storeId/products/:productId')
+  async addProduct(
+    @Param('storeId', ParseIntPipe) storeId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Request() req,
+    @Body() payload: StoreAssignProductDTO){
+      await this.storeService.addProduct(req.user.userId, productId, storeId, payload);
+  }
+  /*
+   * Assign a prize with id `productId` in the store with id `storeId`.
+   */
+  @Post(':storeId/products/:productId/price')
+  async assignPrice(
+    @Param('storeId', ParseIntPipe) storeId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Request() req,
+    @Body() payload: StoreAssignPriceDTO){
+      await this.storeService.assignPrice(req.user.userId, productId, storeId, payload);
+  }
+
+  @Put(':storeId/products/:productId/price')
+  async updatePrice(
+    @Param('storeId', ParseIntPipe) storeId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Request() req,
+    @Body() payload: StoreAssignPriceDTO){
+      await this.storeService.updatePrice(req.user.userId, productId, storeId, payload);
+  }
+
+  @Delete(':storeId/products/:productId/price/:priceId')
+  async deletePrice(
+    @Param('storeId', ParseIntPipe) storeId: number,
+    @Param('productId', ParseIntPipe) productId: number,
+    @Param('priceId', ParseIntPipe) priceId: number,
+    @Request() req){
+      await this.storeService.deletePrice(req.user.userId, productId, storeId, priceId);
+  }
 }
