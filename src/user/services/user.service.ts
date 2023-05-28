@@ -53,14 +53,7 @@ export class userService {
   }
 
   async getRefreshToken(email: string) {
-    const check = this.findOne(email);
-    if(check != null){
-      throw new UnprocessableEntityException('User with same email already exists');
-    }else{
-      return (await this.findOne(email)).appuser_refresh_token;
-    }
-    
-
+    return (await this.findOne(email)).appuser_refresh_token;
   }
   //TODO: Add refresh token to user and email verification
   async createUser(newUser: UserCreateDTO) {
@@ -69,18 +62,18 @@ export class userService {
       newUser.appuser_email,
     ]));
     console.log(check)
-    if(check[0]){
+    if (check[0]) {
       throw new UnprocessableEntityException('User with same email already exists');
-    }else{
+    } else {
       await this.pgdb.proc('fun.create_user', [
         newUser.appuser_name,
         await bcrypt.hash(newUser.appuser_password, 12),
         newUser.appuser_email,
         null
       ]);
-      
+
     }
-    
+
   }
 
   async updateUserInfo(id: number, updateUser: UserUpdateDTO) {
@@ -106,9 +99,9 @@ export class userService {
     const res = (await this.pgdb.func('fun.update_user_state', [
       id,
       state
-    ]))[0].update_user_state;  
+    ]))[0].update_user_state;
     console.log(res);
-    if(res === -1){
+    if (res === -1) {
       throw new NotFoundException(`User with id "${id}" does not exist`);
     }
   }
