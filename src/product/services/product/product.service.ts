@@ -44,7 +44,7 @@ export class ProductService {
             newProduct.product_description
         ]))[0].create_product;
         //console.log(res);
-        return res as ProductIdResponseDto;
+        return { product_id: res } as ProductIdResponseDto;
     }
 
     async updateProduct(product_id: number, updatedProduct: ProductUpdateDTO, user_id: number) {

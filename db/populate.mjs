@@ -39,7 +39,6 @@ const createValue = (vals) => {
   })})`;
 };
 
-const createValues = (vals) => `${vals.map((v) => createValue(v)).join(",")}`;
 
 
 const adminId = (await pgdb.query(`SELECT appuser_id FROM ${env}.appuser`))[0].appuser_id;
@@ -111,7 +110,6 @@ if (productatstore.length == 0) {
 }
 
 let prices = await pgdb.any(`SELECT * FROM ${env}.price`);
-console.log("product at store", productatstore);
 if (prices.length == 0) {
   console.log("creating prices")
   const MIN_PRICE = 100;
