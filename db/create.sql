@@ -410,10 +410,7 @@ CREATE OR REPLACE FUNCTION fun.update_store(
        user_id int,
        id int,
        n varchar(172),
-       lat double precision,
-       lon double precision,
-       description text,
-       schedule tstzrange
+       description text
        )
 RETURNS INTEGER AS
 $$
@@ -427,9 +424,7 @@ $$
     ELSE -- Store exists and user is creator so the store is updated
         UPDATE dev.store
         SET store_description = description,
-            store_name = n,
-            store_location_21897 = ST_Transform(ST_POINT(lon,lat,4326),21897),
-            store_schedule = schedule
+            store_name = n
         WHERE store_id = id
         AND store_appuser_id = user_id;
         RETURN id;

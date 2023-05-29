@@ -87,10 +87,7 @@ export class StoreService {
         user_id,
         store_id,
         updatedStore.store_name,
-        updatedStore.store_lat,
-        updatedStore.store_lon,
         updatedStore.store_description,
-        updatedStore.store_schedule,
       ])
     )[0].update_store;
     if (res === -1) {
