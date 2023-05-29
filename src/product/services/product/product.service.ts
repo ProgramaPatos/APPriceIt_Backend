@@ -56,7 +56,7 @@ export class ProductService {
                 updatedProduct.product_name,
                 updatedProduct.product_description
             ])
-        );
+        )[0].update_product;
 
         if (res === -1) {
             throw new NotFoundException(`Product with id "${product_id}" does not exist`);
@@ -66,7 +66,7 @@ export class ProductService {
                 ` by user with id "${user_id}"`,
             );
         }
-
+        return res as ProductIdResponseDto;
     }
     async deleteProduct(product_id: number) {
         await this.pgdb.proc("fun.delete_product", [

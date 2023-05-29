@@ -36,6 +36,7 @@ import { Public } from 'src/auth/public.decorator';
 import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
 import StoreAssignProductDTO from '../dtos/store-assign-product.dto';
 import StoreAssignPriceDTO from '../dtos/store-assign-price.dto';
+import StoreIdResponseDTO from '../dtos/store-id.dto';
 
 
 
@@ -105,12 +106,12 @@ export class StoreController {
    * Creates a new store
    */
   @Post()
-  @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
+  //@HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
   @ApiNoContentResponse({
     description: 'The store has been successfully created.',
   })
-  createStore(@Body() payload: StoreCreateDTO): void {
-    this.storeService.createStore(payload);
+  async createStore(@Body() payload: StoreCreateDTO, @Request() req): Promise<StoreIdResponseDTO> {
+    return this.storeService.createStore(payload,req.user.userId);
   }
 
   /*
@@ -122,12 +123,13 @@ export class StoreController {
   @ApiForbiddenResponse({ description: 'The user cannot modify store data.' })
   @ApiNotFoundResponse({ description: 'The store does not exist.' })
   @Put(':storeId')
-  @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
+  //@HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
   async updateStore(
     @Param('storeId', ParseIntPipe) storeId: number,
     @Body() payload: StoreUpdateDTO,
-  ) {
-    await this.storeService.updateStore(storeId, payload);
+    @Request() req,
+  ): Promise<StoreIdResponseDTO> {
+    return await this.storeService.updateStore(storeId, payload, req.user.userId);
   }
 
   // TODO: add delete method

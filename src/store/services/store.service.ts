@@ -13,6 +13,7 @@ import StoreResponseDTO from '../dtos/store-response.dto';
 import StoreUpdateDTO from '../dtos/store-update.dto';
 import StoreAssignProductDTO from '../dtos/store-assign-product.dto';
 import StoreAssignPriceDTO from '../dtos/store-assign-price.dto';
+import StoreIdResponseDTO from '../dtos/store-id.dto';
 
 @Injectable()
 export class StoreService {
@@ -36,15 +37,16 @@ export class StoreService {
     return res[0];
   }
 
-  async createStore(newStore: StoreCreateDTO) {
-    await this.pgdb.proc('fun.create_store', [
-      newStore.store_appuser_id,
+  async createStore(newStore: StoreCreateDTO, user_id: number) {
+    const res = (await this.pgdb.func('fun.create_store', [
+      user_id,
       newStore.store_name,
       newStore.store_lat,
       newStore.store_lon,
       newStore.store_description,
       newStore.store_schedule,
-    ]);
+    ]))[0].create_store;
+    return res as StoreIdResponseDTO;
   }
 
 
@@ -79,10 +81,10 @@ export class StoreService {
     return res;
   }
 
-  async updateStore(store_id: number, updatedStore: StoreUpdateDTO,) {
+  async updateStore(store_id: number, updatedStore: StoreUpdateDTO, user_id: number) {
     const res = (
       await this.pgdb.func('fun.update_store', [
-        updatedStore.store_appuser_id,
+        user_id,
         store_id,
         updatedStore.store_name,
         updatedStore.store_lat,
@@ -96,9 +98,10 @@ export class StoreService {
     } else if (res === -2) {
       throw new ForbiddenException(
         `Store with id "${store_id}" was not created` +
-        ` by user with id "${updatedStore.store_appuser_id}"`,
+        ` by user with id "${user_id}"`,
       );
     }
+    return res as StoreIdResponseDTO;
   }
 
   async storeProducts(store_id: number) {

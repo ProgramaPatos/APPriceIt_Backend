@@ -70,13 +70,13 @@ export class ProductController {
     @ApiForbiddenResponse({ description: 'The user cannot modify product data.' })
     @ApiNotFoundResponse({ description: 'The product does not exist.' })
     @Put(':productId')
-    @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
-    updateProduct(
+    //@HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
+    async updateProduct(
         @Param('productId', ParseIntPipe) productId: number,
         @Body() payload: ProductUpdateDTO,
         @Request() req
-    ): void {
-        this.productService.updateProduct(productId, payload,req.user.userId);
+    ): Promise<ProductIdResponseDto> {
+        return await this.productService.updateProduct(productId, payload,req.user.userId);
     }
     
     /*

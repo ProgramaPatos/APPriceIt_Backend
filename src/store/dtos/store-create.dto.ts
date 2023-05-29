@@ -50,10 +50,5 @@ export default class StoreCreateDTO {
   @IsOptional()
   readonly store_schedule?: string;
 
-  /*
-   * @example 1
-   */
-  @IsNotEmpty()
-  @IsNumber()
-  readonly store_appuser_id: number;
+  
 }

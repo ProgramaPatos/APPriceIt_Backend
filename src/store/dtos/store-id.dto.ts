@@ -1,7 +1,7 @@
 import { IsNumber, IsNotEmpty } from "class-validator";
 
-export default class ProductIdResponseDto {
+export default class StoreIdResponseDTO {
     @IsNumber()
     @IsNotEmpty()
-    readonly product_id: number;
+    readonly store_id: number;
 }

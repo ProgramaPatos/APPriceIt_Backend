@@ -227,7 +227,7 @@ $$
             product_name = n
         WHERE product_id = id
         AND product_appuser_id = user_id;
-        RETURN 0;
+        RETURN id;
     END IF;
     END;
 $$
@@ -259,7 +259,7 @@ END;
 
 
 -- STORE RELATED PROCEDURES AND FUNCTIONS
-CREATE OR REPLACE PROCEDURE fun.create_store(
+CREATE OR REPLACE FUNCTION fun.create_store(
        user_id int,
        n varchar(172),
        lat double precision,
@@ -267,11 +267,13 @@ CREATE OR REPLACE PROCEDURE fun.create_store(
        description text = NULL,
        schedule tstzrange = NULL
        )
+RETURNS INTEGER
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
       INSERT INTO :env.store (store_name,store_location_21897,store_appuser_id,store_description,store_schedule,store_creation_time)
-      VALUES (n,ST_Transform(ST_Point(lon,lat,4326),21897),user_id,description,schedule,NOW());
+      VALUES (n,ST_Transform(ST_Point(lon,lat,4326),21897),user_id,description,schedule,NOW())
+      RETURNING store_id;
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_store(
@@ -430,7 +432,7 @@ $$
             store_schedule = schedule
         WHERE store_id = id
         AND store_appuser_id = user_id;
-        RETURN 0;
+        RETURN id;
     END IF;
     END;
 $$
