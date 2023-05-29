@@ -139,16 +139,18 @@ LANGUAGE plpgsql;
 
 -- PRODUCT RELATED PROCEDURES AND FUNCTIONS
 
-CREATE OR REPLACE PROCEDURE fun.create_product(
+CREATE OR REPLACE FUNCTION fun.create_product(
     user_id int,
     n varchar(70),
     description text = NULL
 )
+RETURNS INTEGER
 LANGUAGE SQL
 SECURITY DEFINER
 BEGIN ATOMIC
     INSERT INTO :env.product (product_appuser_id,product_name, product_description, product_creation_time)
-    VALUES (user_id, n, description, NOW());
+    VALUES (user_id, n, description, NOW())
+    RETURNING product_id;
 END;
 
 CREATE OR REPLACE FUNCTION fun.get_product(

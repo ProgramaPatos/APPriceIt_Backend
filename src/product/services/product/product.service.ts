@@ -2,6 +2,7 @@ import { ForbiddenException, Inject, Injectable, NotFoundException, Unprocessabl
 import { IDatabase } from 'pg-promise';
 import { IClient } from 'pg-promise/typescript/pg-subset';
 import ProductCreateDTO from 'src/product/dto/product-create.dto';
+import ProductIdResponseDto from 'src/product/dto/product-id.dto';
 import { ProductQueryDTO } from 'src/product/dto/product-query.dto';
 import ProductResponseDTO from 'src/product/dto/product-response.dto';
 import { ProductUpdateDTO } from 'src/product/dto/product-update.dto';
@@ -36,19 +37,21 @@ export class ProductService {
         return res;
     }
 
-    async createProduct(newProduct: ProductCreateDTO) {
-        await this.pgdb.proc("fun.create_product", [
-            newProduct.product_appuser_id,
+    async createProduct(newProduct: ProductCreateDTO, user_id: number) {
+        const res = (await this.pgdb.func("fun.create_product", [
+            user_id,
             newProduct.product_name,
             newProduct.product_description
-        ])
+        ]))[0].create_product;
+        //console.log(res);
+        return res as ProductIdResponseDto;
     }
 
-    async updateProduct(product_id: number, updatedProduct: ProductUpdateDTO) {
+    async updateProduct(product_id: number, updatedProduct: ProductUpdateDTO, user_id: number) {
 
         const res = (
             await this.pgdb.func('fun.update_product', [
-                updatedProduct.product_appuser_id,
+                user_id,
                 product_id,
                 updatedProduct.product_name,
                 updatedProduct.product_description
@@ -60,7 +63,7 @@ export class ProductService {
         } else if (res === -2) {
             throw new ForbiddenException(
                 `Product with id "${product_id}" was not created` +
-                ` by user with id "${updatedProduct.product_appuser_id}"`,
+                ` by user with id "${user_id}"`,
             );
         }
 

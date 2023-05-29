@@ -6,6 +6,7 @@ import ProductResponseDTO from 'src/product/dto/product-response.dto';
 import { ProductUpdateDTO } from 'src/product/dto/product-update.dto';
 import { ProductService } from 'src/product/services/product/product.service';
 import { ACGuard, UseRoles, UserRoles } from 'nest-access-control';
+import ProductIdResponseDto from 'src/product/dto/product-id.dto';
 
 
 @ApiBearerAuth()
@@ -51,12 +52,12 @@ export class ProductController {
      * Creates a new product
      */
     @Post()
-    @HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
+    //@HttpCode(HttpStatus.NO_CONTENT) // It doesn't return anything or we'd use 201
     @ApiNoContentResponse({
         description: 'The product has been successfully created.',
     })
-    createProduct(@Body() payload: ProductCreateDTO): void {
-        this.productService.createProduct(payload);
+    async createProduct(@Body() payload: ProductCreateDTO,@Request() req): Promise<ProductIdResponseDto> {
+        return await this.productService.createProduct(payload,req.user.userId);
     }
 
 
@@ -73,8 +74,9 @@ export class ProductController {
     updateProduct(
         @Param('productId', ParseIntPipe) productId: number,
         @Body() payload: ProductUpdateDTO,
+        @Request() req
     ): void {
-        this.productService.updateProduct(productId, payload);
+        this.productService.updateProduct(productId, payload,req.user.userId);
     }
     
     /*
